@@ -39,6 +39,20 @@ def find_analog_photowp(vcode, session):
                 codes.append(_code)
     return codes
 
+def check_for_photo(session, vcode, row):
+    if "V" in vcode or "P" in vcode:
+        check_photo = find_analog_photowp(vcode, session)
+        if check_photo and len(check_photo) > 1:
+            row.comment += "Аналоги: "
+            for code in check_photo:
+                if code.code == vcode:
+                    continue
+                row.comment += code.code + " "
+                row.comment += str(code.consigments[0].amount) + " шт, "
+            row.comment = row.comment[:-2]
+        return True
+    return False
+
 def get_for_table(data_str, session):
     # data_list = data_str.split()
     data_list = data_str
@@ -90,14 +104,8 @@ def get_for_table(data_str, session):
         _code_in_base = None
         if not code_in_base:
             row.comment += "арт. %s не найден " % row.vcode
-            if "V" in vcode or "P" in vcode:
-                check_photo = find_analog_photowp(vcode, session)
-                if check_photo and len(check_photo) > 1:
-                    row.comment += "Аналоги: "
-                    for code in check_photo:
-                        row.comment += code.code + " "
-                        row.comment += str(code.consigments[0].amount) + " шт, "
-                    continue
+            check_for_photo(vcode, row)
+                    # continue
             code_in_base = find_code(vcode, session)
             if not code_in_base:
                 row.consig = ""
@@ -155,19 +163,11 @@ def get_for_table(data_str, session):
                 if len(add_comment) > 24:
                     row.comment += add_comment
         else:
-            row.consig = "Общая"
-            row.comment = "Партий не найдено"
+            if not check_for_photo(session, vcode, row):
+                row.consig = "Общая"
+                row.comment = "Партий не найдено"
 
-        if "V" in vcode or "P" in vcode:
-            check_photo = find_analog_photowp(vcode, session)
-            if check_photo and len(check_photo) > 1:
-                row.comment += " Аналоги: "
-                for code in check_photo:
-                    # row.comment += str((code.code, [c.amount for c in code.consigments]))
-                    if code == vcode:
-                        continue
-                    row.comment += code.code + " "
-                    row.comment += str(code.consigments[0].amount) + " шт, "
+        check_for_photo(session, vcode, row)
 
     return table_rows
 
