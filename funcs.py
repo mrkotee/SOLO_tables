@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from .models import VCode, Consigment, Collection, base_path, Table_row
+from .solo_settings import replace_dict
 from openpyxl import load_workbook
 import random, string, time
 import os
@@ -77,6 +78,9 @@ def get_for_table(data_str, session):
 
         number = int(number)
         vcode = vcode.upper()
+        for lett in vcode:
+            if lett in replace_dict:
+                vcode = vcode.replace(lett, replace_dict[lett])
         row = Table_row(vcode, number)
         table_rows.append(row)
 
