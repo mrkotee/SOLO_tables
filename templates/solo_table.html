@@ -1,0 +1,81 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+	{% block title %}
+		 SOLO TABLES
+	{% endblock %}
+</title>
+<link href="{% static 'css/bootstrap.css' %}" rel='stylesheet' type='text/css' />
+<!-- jQuery (Bootstrap's JavaScript plugins) -->
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<!-- Custom Theme files -->
+<link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css" media="all" />
+<!-- Custom Theme files -->
+{% block css %}{% endblock %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!-- <meta name="keywords" content="Bike-shop Responsive web template, Bootstrap Web Templates, Flat Web Templates, Andriod Compatible web template, 
+Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, SonyErricsson, Motorola web design" /> -->
+<script type="application/x-javascript"> addEventListener("load", function() { setTimeout(hideURLbar, 0); }, false); function hideURLbar(){ window.scrollTo(0,1); } </script>
+<!--webfont-->
+<link href='https://fonts.googleapis.com/css?family=Roboto:500,900,100,300,700,400' rel='stylesheet' type='text/css'>
+<!--webfont-->
+<!-- dropdown -->
+<script src="{% static 'js/jquery.easydropdown.js' %}"></script>
+<link href="{% static 'css/nav.css' %}" rel="stylesheet" type="text/css" media="all"/>
+
+<style type="text/css">
+	table {
+		position: relative; 
+		margin-left: auto;
+		margin-right: auto;
+		border: 1px solid grey;
+	}
+	tr {
+		border: 1px solid grey;
+		padding: 5px;
+	}
+	th {
+		border: 1px solid grey;
+		padding: 5px;
+		text-align: center;
+	}
+	td {
+		border: 1px solid grey;
+		padding: 5px;
+	}
+</style>
+
+</head>
+<body>
+
+<div class="contact" style="background: none">
+	<div class="container">
+		<h3>ПОДБОР ПАРТИЙ</h3>
+		{{ last_update_time }}
+		{% if not data_receved %}
+			<form method="post" action="/solo/senddata/">
+				{% csrf_token %}
+				<textarea name='data' placeholder="АРТИКУЛ КОЛ-ВО_РУЛОНОВ АРТИКУЛ КОЛ-ВО_РУЛОНОВ и т.д. Для счета в коробках к количеству добавить зведочку(*) "></textarea>
+				<input type="submit" value="SEND">
+			</form>
+
+		{% else %}
+			<a href="/solo/">вернуться к форме</a>
+			<table>
+				<tr><th>Артикул</th><th>Номенклатура</th><th>партия</th><th>кол-во рул</th><th>Комментарий</th></tr>
+				{% for row in table_rows %}
+					<tr><td>{{ row.vcode }}</td><td></td><td>{{ row.consig }}</td><td>{{ row.number }}</td><th>{{ row.comment }}</th></tr>
+				{% endfor %}
+			</table>
+		{% endif %}
+	</div>
+</div>
+
+
+</body>
+</html>
+
