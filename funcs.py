@@ -50,6 +50,8 @@ def check_for_photo(session, vcode, row):
                 row.comment += code.code + " "
                 row.comment += str(code.consigments[0].amount) + " шт, "
             row.comment = row.comment[:-2]
+            if row.number == 0:
+                row.number = 1
         return True
     return False
 
@@ -104,7 +106,7 @@ def get_for_table(data_str, session):
         _code_in_base = None
         if not code_in_base:
             row.comment += "арт. %s не найден " % row.vcode
-            check_for_photo(vcode, row)
+            check_for_photo(session, vcode, row)
                     # continue
             code_in_base = find_code(vcode, session)
             if not code_in_base:
@@ -166,6 +168,8 @@ def get_for_table(data_str, session):
             if not check_for_photo(session, vcode, row):
                 row.consig = "Общая"
                 row.comment = "Партий не найдено"
+            else:
+                continue
 
         check_for_photo(session, vcode, row)
 
