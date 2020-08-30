@@ -5,6 +5,7 @@ var analog_vcodes_counter_dict = {};
 
 $(document).ready(function(){
 	var comments = $(".comment");
+	var footer = false;
 	for (var i = 0; i < comments.length; i++) {
 		var comment = $(".comment")[i];
 		var comment_text = comment.textContent;
@@ -21,6 +22,10 @@ $(document).ready(function(){
 				analog_vcodes_dict[vcode].push(comm_vcode);
 				comment_text = comment_text.slice( comment_text.search(/(P4|P8|V8|V4)/g)+2 );
 
+			};
+			if ( footer == false ) {
+				$("table")[0].insertAdjacentHTML('afterEnd', '<p>*При нажатии на коментарий с аналогами фотообоев - артикул заменится автоматически</p>');
+				footer = true;
 			};
 		};
 	};

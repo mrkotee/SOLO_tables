@@ -65,17 +65,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 			</form>
 
 		{% else %}
-			<script type="text/javascript">
-				$(document).ready(function(){
-
-					$(".comment").click(function(){
-						if ( $(this).text().search(/(\d+[PV]\d)/g) != -1 ) {
-
-							$(this).parent().find(".vcode").text( $(this).text().slice($(this).text().search(/(\d+[PV]\d)/g), $(this).text().search(/(P4|P8|V8|V4)/g)+2) );
-						}
-					})
-				});
-			</script>
+			<script src="{% static 'solo_table_scripts.js' %}"></script>
 			<a href="/solo/">вернуться к форме</a>
 			<table>
 				<tr><th>Артикул</th><th>Номенклатура</th><th>партия</th><th>кол-во рул</th><th>Комментарий</th></tr>
@@ -83,7 +73,6 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 					<tr><td class="vcode">{{ row.vcode }}</td><td></td><td>{{ row.consig }}</td><td>{{ row.number }}</td><th class="comment">{{ row.comment }}</th></tr>
 				{% endfor %}
 			</table>
-			<p>*При нажатии на коментарий с аналогами фотообоев - артикул заменится автоматически</p>
 		{% endif %}
 	</div>
 </div>
