@@ -70,7 +70,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 			<table>
 				<tr><th>Артикул</th><th>Номенклатура</th><th>партия</th><th>кол-во рул</th><th>Комментарий</th></tr>
 				{% for row in table_rows %}
-					<tr><td class="vcode">{{ row.vcode }}</td><td></td><td>{{ row.consig }}</td><td>{{ row.number }}</td><th class="comment">{{ row.comment }}</th></tr>
+					<tr><td class="vcode">{{ row.vcode }}</td><td></td><td>{{ row.consig }}</td><td class="number">{{ row.number }}</td><th class="comment">{{ row.comment }}</th></tr>
 				{% endfor %}
 			</table>
 		{% endif %}
