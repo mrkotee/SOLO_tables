@@ -1,7 +1,8 @@
 import os
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
+import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
@@ -23,23 +24,35 @@ def main(request, data_receved=False):
                                         )
 
 def table(request):
-    if request.method == 'POST':
+    if request.method == 'GET':
+        data = request.GET['data']
+
+    elif request.method == 'POST':
         data = request.POST.get('data')
 
-        data_list = data.split()
 
-        engine = create_engine('sqlite:///%s' % base_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
+    else:
+        raise Http404
 
-        table_rows = get_for_table(data_list, session)
+    data_list = data.split()
 
-        session.close()
+    engine = create_engine('sqlite:///%s' % base_path, echo=False)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    table_rows = get_for_table(data_list, session)
+
+    session.close()
+    
+    if request.method == 'GET':
+
+        return HttpResponse(json.dumps(table_rows[0].__dict__), content_type="application/json")
+
+    if request.method == 'POST':
         # return redirect('index', message_receved=True) #, {'page': 'index', 'message_receved': True})
         return render(request, 'solo_table.html', {'data_receved': True,
                                                 'table_rows': table_rows,
                                                 })
-    raise Http404
 
 
 def update(request, file_receved=False):
