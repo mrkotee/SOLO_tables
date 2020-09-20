@@ -62,3 +62,64 @@ $(document).ready(function(){
 
 //regexp for end of vcode
 // .search(/(P4|P8|V8|V4)/g)
+
+
+$(document).on("dblclick", ".vcode", function() {
+	var text_ = $(this).text();
+	$(this).replaceWith("<input class=\"vcode\" value=\"" + text_ + "\" autofocus>");
+	$("input.vcode").click();
+
+});
+
+
+$(document).on("keydown", "input.vcode", function(e) {
+	if(e.keyCode === 13) {
+		if($(this).parent().children()[3].textContent != 0) {var vall = this.value + " " + $(this).parent().children()[3].textContent}
+		else {var vall = this.value};
+		var inpt_el = this;
+		$.ajax({
+			type:"GET",
+			url: "/solo/senddata",
+			data: {
+				data: vall
+			},
+			success: function(data) {
+				inpt_el.parentElement.children[2].textContent = data.consig;
+				inpt_el.parentElement.children[3].textContent = data.number;
+				inpt_el.parentElement.children[4].textContent = data.comment;
+				$(inpt_el).replaceWith("<td class=\"vcode\">" + data.vcode + "</td>");
+			}
+		})
+	}
+});
+
+
+$(document).on("dblclick", ".number", function() {
+	var text_ = $(this).text();
+	$(this).replaceWith("<input class=\"number\" value=\"" + text_ + "\" style=\"width: 60px\"; autofocus>");
+	$("input.number").click();
+
+});
+
+$(document).on("keydown", "input.number", function(e) {
+	if(e.keyCode === 13) {
+		// if(this.value != 0) {var vall = $(this).parent().children()[0].textContent + " " + this.value}
+		// else {var vall = $(this).parent().children()[0].textContent};
+		var vall = $(this).parent().children()[0].textContent + " " + this.value
+		
+		var inpt_el = this;
+		$.ajax({
+			type:"GET",
+			url: "/solo/senddata",
+			data: {
+				data: vall
+			},
+			success: function(data) {
+				inpt_el.parentElement.children[0].textContent = data.vcode;
+				inpt_el.parentElement.children[2].textContent = data.consig;
+				inpt_el.parentElement.children[4].textContent = data.comment;
+				$(inpt_el).replaceWith("<td class=\"number\">" + data.number + "</td>");
+			}
+		})
+	}
+});
