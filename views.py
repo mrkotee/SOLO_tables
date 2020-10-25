@@ -29,6 +29,7 @@ def table(request):
 
     elif request.method == 'POST':
         data = request.POST.get('data')
+        boxes_num = request.POST.get('boxes_num')
 
 
     else:
@@ -39,8 +40,10 @@ def table(request):
     engine = create_engine('sqlite:///%s' % base_path, echo=False)
     Session = sessionmaker(bind=engine)
     session = Session()
-
-    table_rows = get_for_table(data_list, session)
+    if boxes_num:
+        table_rows = get_for_table(data_list, session, boxes_num)
+    else:
+        table_rows = get_for_table(data_list, session)
 
     session.close()
     
