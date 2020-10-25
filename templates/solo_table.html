@@ -61,6 +61,7 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 			<form method="post" action="/solo/senddata/">
 				{% csrf_token %}
 				<input placeholder="кол-во коробок" type="number" name="boxes_num">
+				<input placeholder="компаньон кол-во коробок" type="number" name="uni_boxes_num">
 				<textarea name='data' placeholder="АРТИКУЛ КОЛ-ВО_РУЛОНОВ АРТИКУЛ КОЛ-ВО_РУЛОНОВ и т.д. Для счета в коробках к количеству добавить зведочку(*) "></textarea>
 				<input type="submit" value="SEND">
 			</form>

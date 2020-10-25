@@ -256,7 +256,7 @@ def add_vcodes():
     session.commit()
 
 
-def get_for_table(data_str):
+def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
     data_list = data_str.split()
 
     # if len(data_list[1]) > 3:
@@ -331,11 +331,16 @@ def get_for_table(data_str):
             code_in_base = _code_in_base
             row.vcode = code_in_base.code
 
+        print("motive: ", code_in_base.motive)
         if in_boxes:
             if code_in_base.collection:
                 if boxes_num:
                     row.number = code_in_base.collection.boxes * int(boxes_num)
                     boxes_num = 0
+                elif uni_boxes_num and not code_in_base.motive:
+                    row.number = code_in_base.collection.boxes * int(uni_boxes_num)
+                elif all_boxes_num:
+                    row.number = code_in_base.collection.boxes * int(all_boxes_num)
                 else:
                     row.number = code_in_base.collection.boxes
             else:
@@ -458,17 +463,18 @@ if __name__ == '__main__':
 
     # add_vcodes()
 
-    filepath = r'/home/django/bike_shop/solo/abc.xlsx'
-    add_boxes_to_vcodes()
+    # filepath = r'/home/django/bike_shop/solo/abc.xlsx'
+    # add_boxes_to_vcodes()
 
     # filepath = r'/home/django/bike_shop/solo/base.xlsx'
     # add_vcodes()
 
     # request_str = "EL21201 2 e37105 *2 N55664 4 167062-90 894P8 136P8"
     # request_str = "21201 37108 *20 55664 167062-90 894p8 136p4"
-    # response = get_for_table(request_str)
-    # for row in response:
-    #     print(row.vcode, row.consig, row.number, row.comment)
+    request_str = "240509 240461"
+    response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
+    for row in response:
+        print(row.vcode, row.consig, row.number, row.comment)
 
     # print(session.query(Collection).get(75).vcodes[0].code)
 

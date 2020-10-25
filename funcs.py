@@ -55,7 +55,7 @@ def check_for_photo(session, vcode, row):
         return True
     return False
 
-def get_for_table(data_str, session, boxes_num=0):
+def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
     # data_list = data_str.split()
     data_list = data_str
     """выше не менять"""
@@ -65,7 +65,7 @@ def get_for_table(data_str, session, boxes_num=0):
     table_rows = []
     skip = False
     in_boxes = False
-    # boxes_num = 0
+    boxes_num = 0
     for i in for_range:
         if skip:
             skip = False
@@ -138,6 +138,10 @@ def get_for_table(data_str, session, boxes_num=0):
                 if boxes_num:
                     row.number = code_in_base.collection.boxes * int(boxes_num)
                     boxes_num = 0
+                elif uni_boxes_num and not code_in_base.motive:
+                    row.number = code_in_base.collection.boxes * int(uni_boxes_num)
+                elif all_boxes_num:
+                    row.number = code_in_base.collection.boxes * int(all_boxes_num)
                 else:
                     row.number = code_in_base.collection.boxes
             else:

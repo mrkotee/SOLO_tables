@@ -31,7 +31,7 @@ def table(request):
     elif request.method == 'POST':
         data = request.POST.get('data')
         boxes_num = request.POST.get('boxes_num')
-
+        uni_boxes_num = request.POST.get('uni_boxes_num')
 
     else:
         raise Http404
@@ -42,7 +42,12 @@ def table(request):
     Session = sessionmaker(bind=engine)
     session = Session()
     if boxes_num:
-        table_rows = get_for_table(data_list, session, boxes_num)
+        if uni_boxes_num:
+            table_rows = get_for_table(data_list, session, boxes_num, uni_boxes_num)
+        else:
+            table_rows = get_for_table(data_list, session, boxes_num)
+    elif uni_boxes_num:
+        table_rows = get_for_table(data_list, session, uni_boxes_num=uni_boxes_num)
     else:
         table_rows = get_for_table(data_list, session)
 
