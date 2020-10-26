@@ -38,10 +38,12 @@ class VCode(Base):
     collection_id = Column(String, ForeignKey("collections.id"))
     motive = Column(Boolean)
 
-    def __init__(self, code, collection_id=int()):
+    def __init__(self, code, collection_id=int(), motive=Boolean()):
         self.code = code
         if collection_id:
             self.collection_id = collection_id
+        if motive:
+            self.motive = motive
 
 
 class Paired_vcode(Base):
@@ -61,7 +63,7 @@ class Consigment(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     vcode_id = Column(String, ForeignKey("vendor_codes.id"))
-    amount = Column(Integer)
+    amount = Column(Integer, nullable=False, default=0)
     # vendor_code = relationship("VCode", backref='consigments')
 
     def __init__(self, name, vcode, amount):
