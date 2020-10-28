@@ -190,6 +190,8 @@ def read_xlxs(filepath):
         vcode = row[0].value.split()[0]
         consig = row[1].value
         amount = row[2].value
+        if not amount:
+            continue
         xlxs_rows.append((i, vcode, consig, amount))
     wb.close()
     return xlxs_rows
