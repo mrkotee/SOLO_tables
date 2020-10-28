@@ -26,19 +26,19 @@ def read_xlxs_uni(filepath):
 
 
 def migrate_vcodes():
-    xlsx_rows_uni = read_xlxs_uni(filepath)
+    # xlsx_rows_uni = read_xlxs_uni(filepath)
 
     from models_old import VCode as VCode_old
     codes_old = session.query(VCode_old).all()
 
     for vcode_old in codes_old:
         print(vcode_old.id)
-        print(vcode_old.__dict__)
+        # print(vcode_old.__dict__)
 
-        new_vcode = VCode(code=vcode_old.code, collection_id=vcode_old.collection_id)
-        for row in xlsx_rows_uni:
-            if row[1] == vcode_old.code:
-                new_vcode.motive = row[2]
+        new_vcode = VCode(code=vcode_old.code, collection_id=vcode_old.collection_id, motive=vcode_old.motive)
+        # for row in xlsx_rows_uni:
+        #     if row[1] == vcode_old.code:
+        #         new_vcode.motive = row[2]
         session_t.add(new_vcode)
 
         session_t.commit()
