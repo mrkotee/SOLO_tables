@@ -471,10 +471,10 @@ if __name__ == '__main__':
 
     # request_str = "EL21201 2 e37105 *2 N55664 4 167062-90 894P8 136P8"
     # request_str = "21201 37108 *20 55664 167062-90 894p8 136p4"
-    request_str = "240509 240461"
-    response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
-    for row in response:
-        print(row.vcode, row.consig, row.number, row.comment)
+    # request_str = "240509 240461"
+    # response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
+    # for row in response:
+    #     print(row.vcode, row.consig, row.number, row.comment)
 
     # print(session.query(Collection).get(75).vcodes[0].code)
 
@@ -514,10 +514,14 @@ if __name__ == '__main__':
     # wb.close()
 
 
-    # consigs = session.query(Consigment).all()
+    consigs = session.query(Consigment).all()
     # consig_in_base = None
     # for _consig in consigs:
     #     if _consig.name == '012' and _consig.amount == 9:
     #         print(_consig.id , _consig.vendor_code.code)
+
+    for _consig in consigs:
+        if not _consig.amount:
+            print(_consig.id, session.query(VCode).get(_consig.vcode_id).code)
 
     session.close()
