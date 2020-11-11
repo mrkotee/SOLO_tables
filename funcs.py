@@ -234,9 +234,13 @@ def get_all_from_base(xlxs_rows, session):
                 code_in_base = _code
                 break
         if not code_in_base:
-            session.add(VCode(vcode))
-            session.commit()
-            need_commit = False
+            try:
+                session.add(VCode(vcode))
+                session.commit()
+                need_commit = False
+            except Exception as e:
+                needed_collections.insert(0, 'ERROR: {}'.format(e))
+                
             code_in_base = session.query(VCode).filter(VCode.code == vcode).first()
             changed_positions.append("add new vcode: {}".format(code_in_base.code))
             codes.append(code_in_base)
