@@ -38,7 +38,7 @@ class VCode(Base):
     collection_id = Column(String, ForeignKey("collections.id"))
     motive = Column(Boolean)
 
-    def __init__(self, code, collection_id=int(), motive=Boolean()):
+    def __init__(self, code, collection_id=int(), motive=True):
         self.code = code
         if collection_id:
             self.collection_id = collection_id
