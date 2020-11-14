@@ -25,6 +25,7 @@ def main(request, data_receved=False):
 
 def table(request):
     boxes_num = 0
+    uni_boxes_num = 0
     if request.method == 'GET':
         data = request.GET['data']
 
