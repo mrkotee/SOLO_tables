@@ -2,8 +2,13 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
-from .models import VCode, Consigment, Collection, base_path, Table_row
-from .solo_settings import replace_dict
+try:
+    from .models import VCode, Consigment, Collection, base_path, Table_row
+    from .solo_settings import replace_dict
+except:
+    from models import VCode, Consigment, Collection, base_path, Table_row
+    from solo_settings import replace_dict
+
 from openpyxl import load_workbook
 import random, string, time
 import os

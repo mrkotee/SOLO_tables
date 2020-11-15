@@ -10,6 +10,7 @@ from openpyxl import load_workbook
 from .models import base_path, VCode, Consigment, Collection, Table_row, path_for_old_base
 from .funcs import get_for_table, get_all_from_base, read_xlxs, add_boxes_to_vcodes, read_abc_xlxs
 from .solo_settings import xlxs_filepath, xlxs_abc_filepath
+from .celery_tasks import update_base
 
 
 
@@ -75,9 +76,6 @@ def update(request, file_receved=False):
         with open(xlxs_filepath, 'wb') as f:
             f.write(u_file)
 
-        engine = create_engine('sqlite:///%s' % base_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
 
         try:
             xlxs_rows = read_xlxs(xlxs_filepath)
@@ -86,19 +84,29 @@ def update(request, file_receved=False):
                                         'wrong_file': True,
                                         })
 
-        changed_positions, rows_to_check, checked_rows, needed_collections = get_all_from_base(xlxs_rows, session)
+        update_base.delay()
+        changed_positions, rows_to_check, checked_rows, needed_collections = ["Update will be done soon"], 0, 0, ['']
 
-        session.close()
-
-        with open('update_result.txt', 'w') as f:
-            for cllctn in needed_collections:
-                f.write(cllctn + "\n")
-            for change in changed_positions:
-                f.write(change + "\n")
+        
+        # engine = create_engine('sqlite:///%s' % base_path, echo=False)
+        # Session = sessionmaker(bind=engine)
+        # session = Session()
 
 
-        new_path = path_for_old_base(update_time=True)
-        os.system(r'cp {} {}'.format(base_path, new_path))
+        # changed_positions, rows_to_check, checked_rows, needed_collections = get_all_from_base(xlxs_rows, session)
+
+        # session.close()
+
+        # with open('update_result.txt', 'w') as f:
+        #     for cllctn in needed_collections:
+        #         f.write(cllctn + "\n")
+        #     for change in changed_positions:
+        #         f.write(change + "\n")
+
+
+        # new_path = path_for_old_base(update_time=True)
+        # os.system(r'cp {} {}'.format(base_path, new_path))
+
 
 
         file_receved = True
