@@ -69,9 +69,6 @@ def table(request):
 def update(request, file_receved=False):
     if request.method == 'POST':
         file = request.FILES['file']
-        # fs = FileSystemStorage()
-        # filename = fs.save(file.name, file)
-        # uploaded_file_url = fs.url(filename)
         u_file = file.read()
         with open(xlxs_filepath, 'wb') as f:
             f.write(u_file)
@@ -85,27 +82,7 @@ def update(request, file_receved=False):
                                         })
 
         update_base.delay()
-        changed_positions, rows_to_check, checked_rows, needed_collections = ["Update will be done soon"], 0, 0, ['']
-
-        
-        # engine = create_engine('sqlite:///%s' % base_path, echo=False)
-        # Session = sessionmaker(bind=engine)
-        # session = Session()
-
-
-        # changed_positions, rows_to_check, checked_rows, needed_collections = get_all_from_base(xlxs_rows, session)
-
-        # session.close()
-
-        # with open('update_result.txt', 'w') as f:
-        #     for cllctn in needed_collections:
-        #         f.write(cllctn + "\n")
-        #     for change in changed_positions:
-        #         f.write(change + "\n")
-
-
-        # new_path = path_for_old_base(update_time=True)
-        # os.system(r'cp {} {}'.format(base_path, new_path))
+        changed_positions = ["Update will be done soon"]
 
 
 
@@ -113,9 +90,6 @@ def update(request, file_receved=False):
         return render(request, 'solo_update.html', {
                                         'file_receved': file_receved,
                                         'changed_positions': changed_positions,
-                                        'rows_to_check': rows_to_check,
-                                        'checked_rows': checked_rows,
-                                        'needed_collections': needed_collections,
                                         })
 
 

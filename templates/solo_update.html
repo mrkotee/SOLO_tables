@@ -75,15 +75,6 @@ Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, Sony
 			<p>Обновлено!</p>
 			{% if label %}
 				<br>
-			{% else %}
-	            <p>Проверено позиций {{ checked_rows }}</p>
-	            <p>Всего позиций {{ rows_to_check }}</p>
-	            {% if needed_collections %}
-	            	{% for position in needed_collections %}
-						<p>{{ position }}</p>
-					{% endfor %}	
-	            {% endif %}
-            	<br>
             {% endif %}
 			{% for change in changed_positions %}
 				<p>{{ change }}</p>
