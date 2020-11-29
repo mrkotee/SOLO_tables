@@ -174,9 +174,9 @@ def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
                 if len(add_comment) > 24:
                     row.comment += add_comment
         else:
+            row.comment = "Партий не найдено"
             if not check_for_photo(session, vcode, row):
                 row.consig = "Общая"
-                row.comment = "Партий не найдено"
             else:
                 continue
 

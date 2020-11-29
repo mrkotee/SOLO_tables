@@ -1,12 +1,14 @@
 
+import random, string, time
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from models import VCode, Consigment, Collection, base_path, Table_row
+from solo_settings import replace_dict
 from openpyxl import load_workbook
-import random, string, time
-import os
+
 
 
 def randomword(length):
@@ -259,12 +261,7 @@ def add_vcodes():
 def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
     data_list = data_str.split()
 
-    # if len(data_list[1]) > 3:
     for_range = range(len(data_list))
-    #     in_boxes = True
-    # else:
-    #     for_range = range(0, len(data_list), 2)
-    #     in_boxes = False
 
     table_rows = []
     skip = False
@@ -298,15 +295,20 @@ def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
 
         number = int(number)
         vcode = vcode.upper()
+        for lett in vcode:
+            if lett in replace_dict:
+                vcode = vcode.replace(lett, replace_dict[lett])
         row = Table_row(vcode, number)
         table_rows.append(row)
 
     # for row in table_rows:
-        print('trying %s\n' % row.vcode)
+        # print('trying %s\n' % row.vcode)
         code_in_base = session.query(VCode).filter(VCode.code == row.vcode).first()
         _code_in_base = None
         if not code_in_base:
             row.comment += "арт. %s не найден " % row.vcode
+            check_for_photo(session, vcode, row)
+                    # continue
             code_in_base = find_code(vcode, session)
             if not code_in_base:
                 row.consig = ""
@@ -317,7 +319,7 @@ def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
                 minimal = min([code.code for code in code_in_base], key=len) # самый короткий артикул
                 row.comment += "Возможные артикулы: "
                 for _code in code_in_base:
-                    row.comment += _code.code + " "
+                    row.comment += "{} ".format(_code.code)
                     if _code.code == minimal:
                         _code_in_base = _code   # выбор самого короткого артикула
                     # row.vcode = code_in_base[0].code
@@ -327,11 +329,11 @@ def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
                 row.vcode = code_in_base[0].code
                 code_in_base = code_in_base[0]
             # continue
+
         if _code_in_base:
             code_in_base = _code_in_base
             row.vcode = code_in_base.code
 
-        print("motive: ", code_in_base.motive)
         if in_boxes:
             if code_in_base.collection:
                 if boxes_num:
@@ -348,8 +350,6 @@ def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
         if code_in_base.consigments:
             enough = False
             for consig in code_in_base.consigments:
-                print("*"*10, '\n', locals(), '\n', "*"*20)
-                print("*"*10, '\n',row.vcode, row.consig, row.number, '\n', "*"*20)
                 if consig.amount >= row.number:
                     enough = True
                     if consig.name:
@@ -370,8 +370,15 @@ def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
                 if len(add_comment) > 24:
                     row.comment += add_comment
         else:
-            row.consig = "Общая"
             row.comment = "Партий не найдено"
+            if not check_for_photo(session, vcode, row):
+                row.consig = "Общая"
+                
+            else:
+                continue
+
+        check_for_photo(session, vcode, row)
+
     return table_rows
 
 
@@ -402,12 +409,30 @@ def find_analog_photowp(vcode, session):
         else:
             break
     response = find_code(digit_code, session)
+    if not response:
+        return False
     codes = []
     for _code in response.copy():
         if "V" in _code.code or "P" in _code.code:
             if len(_code.consigments) > 0 and _code.consigments[0].amount > 0:
                 codes.append(_code)
     return codes
+
+def check_for_photo(session, vcode, row):
+    if "V" in vcode or "P" in vcode:
+        check_photo = find_analog_photowp(vcode, session)
+        if check_photo and len(check_photo) > 1:
+            row.comment += "Аналоги: "
+            for code in check_photo:
+                if code.code == vcode:
+                    continue
+                row.comment += code.code + " "
+                row.comment += str(code.consigments[0].amount) + " шт, "
+            row.comment = row.comment[:-2]
+            if row.number == 0:
+                row.number = 1
+        return True
+    return False
 
 
 def find_duplicates():
@@ -438,8 +463,8 @@ def find_duplicates():
 
 
 if __name__ == '__main__':
-    # base_filename = "base_test.bd"
-    # base_path = os.path.join(os.getcwd(), base_filename)
+    base_filename = "base_test.bd"
+    base_path = os.path.join(os.getcwd(), base_filename)
     # base_path = r'/home/django/bike_shop/solo/base_test.bd'
     # filepath = r'/home/django/bike_shop/solo/base.xlsx'
     filepath = os.path.join(os.getcwd(), "base.xlsx")
@@ -469,12 +494,12 @@ if __name__ == '__main__':
     # filepath = r'/home/django/bike_shop/solo/base.xlsx'
     # add_vcodes()
 
-    # request_str = "EL21201 2 e37105 *2 N55664 4 167062-90 894P8 136P8"
+    request_str = "EL21201 2 e37105 *2 N55664 4 167062-90 894P8 136P8"
     # request_str = "21201 37108 *20 55664 167062-90 894p8 136p4"
     # request_str = "240509 240461"
-    # response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
-    # for row in response:
-    #     print(row.vcode, row.consig, row.number, row.comment)
+    response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
+    for row in response:
+        print(row.vcode, row.consig, row.number, row.comment)
 
     # print(session.query(Collection).get(75).vcodes[0].code)
 
@@ -514,14 +539,14 @@ if __name__ == '__main__':
     # wb.close()
 
 
-    consigs = session.query(Consigment).all()
+    # consigs = session.query(Consigment).all()
     # consig_in_base = None
     # for _consig in consigs:
     #     if _consig.name == '012' and _consig.amount == 9:
     #         print(_consig.id , _consig.vendor_code.code)
 
-    for _consig in consigs:
-        if not _consig.amount:
-            print(_consig.id, session.query(VCode).get(_consig.vcode_id).code)
+    # for _consig in consigs:
+    #     if not _consig.amount:
+    #         print(_consig.id, session.query(VCode).get(_consig.vcode_id).code)
 
     session.close()
