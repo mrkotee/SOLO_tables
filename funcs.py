@@ -21,7 +21,7 @@ def find_code(vcode, session):
         return False
     len_vcode = len(vcode)
     for i, code in enumerate(code_in_base.copy()):
-        if len(code.code) > len_vcode+2:
+        if len(code.code) > len_vcode+2 and code.code[1].isdigit():
             code_in_base.remove(code)
     # if len(code_in_base) > 1:
     #     return min([code.code for code in code_in_base], key=len)
@@ -110,7 +110,6 @@ def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
         code_in_base = session.query(VCode).filter(VCode.code == row.vcode).first()
         _code_in_base = None
         if not code_in_base:
-            row.comment += "арт. %s не найден " % row.vcode
             check_for_photo(session, vcode, row)
                     # continue
             code_in_base = find_code(vcode, session)
@@ -120,6 +119,7 @@ def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
                 continue
 
             elif len(code_in_base) > 1:
+                row.comment += "арт. %s не найден " % row.vcode
                 minimal = min([code.code for code in code_in_base], key=len) # самый короткий артикул
                 row.comment += "Возможные артикулы: "
                 for _code in code_in_base:
