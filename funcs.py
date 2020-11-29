@@ -48,7 +48,7 @@ def check_for_photo(session, vcode, row):
     if "V" in vcode or "P" in vcode:
         check_photo = find_analog_photowp(vcode, session)
         if check_photo and len(check_photo) > 1:
-            row.comment += "Аналоги: "
+            row.comment += " Аналоги: "
             for code in check_photo:
                 if code.code == vcode:
                     continue

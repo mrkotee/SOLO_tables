@@ -41,7 +41,7 @@ $(document).ready(function(){
 
 		vcode = $(this).parent().find(".vcode")[0].classList[1];
 
-		analog_vcodes = analog_vcodes_dict[vcode];
+		var analog_vcodes = analog_vcodes_dict[vcode];
 
 		if (analog_vcodes.length > 1) {
 			var analog_vcode = analog_vcodes[analog_vcodes_counter_dict[vcode]];
