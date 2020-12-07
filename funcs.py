@@ -21,7 +21,7 @@ def find_code(vcode, session):
         return False
     len_vcode = len(vcode)
     for i, code in enumerate(code_in_base.copy()):
-        if code.code[1].isdigit():  # len(code.code) > len_vcode+2 and 
+        if code.code[0].isdigit():  # len(code.code) > len_vcode+2 and 
             code_in_base.remove(code)
     # if len(code_in_base) > 1:
     #     return min([code.code for code in code_in_base], key=len)
