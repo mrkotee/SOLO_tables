@@ -63,6 +63,22 @@ def read_xlxs(filepath):
     return xlxs_rows
 
 
+def read_abc_xlxs(filepath):
+    wb = load_workbook(filename=filepath)
+    ws = wb[wb.sheetnames[0]]
+    xlxs_rows = []
+    for i, row in enumerate(ws.iter_rows()):
+        if i < 6:
+            continue
+        vcode = row[0].value
+        name = row[1].value
+        collection = row[2].value
+        box = row[3].value
+        xlxs_rows.append((vcode, name, collection, box))
+    wb.close()
+    return xlxs_rows
+
+
 def get_all_from_base(xlxs_rows):
     codes = session.query(VCode).all()
     consigs = session.query(Consigment).all()
@@ -162,61 +178,73 @@ def get_one_by_one():
     session.commit()
 
 
-def add_boxes_to_vcodes():
+def add_boxes_to_vcodes(xlxs_rows, session):
     """Выгрузка из ABC"""
+
+    def find_collection(collection_name, collections):
+        for _coll in collections:
+            if _coll.name == collection_name:
+                return _coll
+        return None
+
     codes = session.query(VCode).all()
     collections = session.query(Collection).all()
 
-    wb = load_workbook(filename=filepath)
-    ws = wb[wb.sheetnames[0]]
-
+    response = []
     need_commit = False
-    for i, row in enumerate(ws.iter_rows()):
-        if i < 6:
-            continue
-        vcode = row[0].value
-        name = row[1].value
-        collection = row[2].value
-        box = row[3].value
+    for i, row in enumerate(xlxs_rows):
+        vcode = str(row[0])
+        name = row[1]
+        collection = row[2]
+        box = row[3]
 
-        # print(i, vcode, collection, box)
+        collection_in_base = find_collection(collection, collections)
 
-        collection_in_base = None
-        for _coll in collections:
-            if _coll.name == collection:
-                collection_in_base = _coll
-                break
+        if collection_in_base and collection_in_base.id != 125:
+            if box and box != collection_in_base.boxes:
+                collection = collection + "_" + str(box)
+                collection_in_base = find_collection(collection, collections)
+
         if not collection_in_base:
+            response.append("added collection %s" % collection)
             session.add(Collection(collection, box))
             session.commit()
-            print("*" * 50, "commit", "*" * 50)
             collection_in_base = session.query(Collection).filter(Collection.name == collection).first()
             collections.append(collection_in_base)
 
         code_in_base = None
         for _code in codes:
+            # if _code.code == '81740':
+            #     print(len(str(vcode)))
+            #     print(len(_code.code))
+            #     print(_code.code == vcode)
             if _code.code == vcode:
                 code_in_base = _code
                 if not code_in_base.collection_id:
                     code_in_base.collection_id = collection_in_base.id
                     need_commit = True
+                    response.append("added collection to %s" % vcode)
+                elif int(code_in_base.collection_id) != collection_in_base.id:
+                    code_in_base.collection_id = collection_in_base.id
+                    need_commit = True
+                    response.append("changed collection to %s" % vcode)
                 break
         if not code_in_base:
-            print(i, vcode, collection, box)
+            response.append("added vcode %s" % vcode)
             session.add(VCode(vcode, collection_in_base.id))
             need_commit = True
-            # session.commit()
-            # code_in_base = session.query(VCode).filter(VCode.code == vcode).first()
-            # codes.append(code_in_base)
 
         if not i % 100 and need_commit:
-            print("*" * 50, "commit", "*" * 50)
             session.commit()
             need_commit = False
 
     if need_commit:
-        print("*" * 50, "commit", "*" * 50)
         session.commit()
+
+    if not response:
+        response.append("no changes")
+        
+    return response
 
 
 def add_vcodes():
@@ -437,6 +465,7 @@ def check_for_photo(session, vcode, row):
 
 
 def find_duplicates():
+    """find and delete duplicated vcodes in base"""
     codes = session.query(VCode).all()
     deleted_id = []
     # print(len(codes), len(codes.copy()))
@@ -461,6 +490,86 @@ def find_duplicates():
                         session.delete(c)
                         session.commit()
                         print("deleted")
+
+
+def check_collection(xlxs_rows, session):
+    codes = session.query(VCode).all()
+    collections = session.query(Collection).all()
+
+    response = []
+    need_commit = False
+    for i, row in enumerate(xlxs_rows):
+        vcode = str(row[0])
+        name = row[1]
+        collection = row[2]
+        box = row[3]
+
+        collection_in_base = None
+        for _coll in collections:
+            if _coll.name == collection:
+                collection_in_base = _coll
+                break
+
+        if collection_in_base.id == 125:
+            continue
+
+        if box and box != collection_in_base.boxes:
+            print(vcode, collection, box, collection_in_base.boxes)
+
+
+def change_collection_boxes(xlxs_rows, session):
+
+    def find_collection(collection_name, collections):
+        for _coll in collections:
+            if _coll.name == collection_name:
+                return _coll
+        return None
+
+    codes = session.query(VCode).all()
+    collections = session.query(Collection).all()
+
+    response = []
+    need_commit = False
+    for i, row in enumerate(xlxs_rows):
+        vcode = str(row[0])
+        name = row[1]
+        collection = row[2]
+        box = row[3]
+
+        collection_in_base = None
+        collection_in_base = find_collection(collection, collections)
+
+        if collection_in_base.id == 125:
+            continue
+
+        if box and box != collection_in_base.boxes:
+            new_collection_name = collection + "_" + str(box)
+            collection_in_base = find_collection(new_collection_name, collections)
+            if not collection_in_base:
+                response.append("added collection %s" % new_collection_name)
+                session.add(Collection(new_collection_name, box))
+                session.commit()
+                collection_in_base = session.query(Collection).filter(Collection.name == new_collection_name).first()
+                collections.append(collection_in_base)
+
+        code_in_base = None
+        for _code in codes:
+            if _code.code == vcode:
+                code_in_base = _code
+                if not code_in_base.collection_id:
+                    code_in_base.collection_id = collection_in_base.id
+                    need_commit = True
+                    response.append("added collection to %s" % vcode)
+                elif int(code_in_base.collection_id) != collection_in_base.id:
+                    code_in_base.collection_id = collection_in_base.id
+                    need_commit = True
+                    response.append("changed collection to %s" % vcode)
+                break
+
+    if need_commit:
+        session.commit()
+
+    return(response)
 
 
 if __name__ == '__main__':
@@ -489,18 +598,32 @@ if __name__ == '__main__':
 
     # add_vcodes()
 
-    # filepath = r'/home/django/bike_shop/solo/abc.xlsx'
-    # add_boxes_to_vcodes()
+
+
+
+
+    xlxs_abc_filepath = r'/home/django/bike_shop/solo/abc.xlsx'
+    # xlxs_abc_filepath = r'/home/django/bike_shop/solo/abc_test.xlsx'
+    xlxs_rows = read_abc_xlxs(xlxs_abc_filepath)
+    changed_positions = add_boxes_to_vcodes(xlxs_rows, session)
+
+
+    # check_collection(xlxs_rows, session)
+    # changed_positions = change_collection_boxes(xlxs_rows, session)
+
+    for change in changed_positions:
+        print(change)
+
 
     # filepath = r'/home/django/bike_shop/solo/base.xlsx'
     # add_vcodes()
 
-    request_str = "EL21201 2 e37105 *2 N55664 4 167062-90 894P8 136P8  RMG2303-1  2303-1"
-    # request_str = "21201 37108 *20 55664 167062-90 894p8 136p4"
-    # request_str = "240509 240461"
-    response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
-    for row in response:
-        print(row.vcode, row.consig, row.number, row.comment)
+    # request_str = "EL21201 2 e37105 *2 N55664 4 167062-90 894P8 136P8  RMG2303-1  2303-1"
+    # # request_str = "21201 37108 *20 55664 167062-90 894p8 136p4"
+    # # request_str = "240509 240461"
+    # response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
+    # for row in response:
+    #     print(row.vcode, row.consig, row.number, row.comment)
 
     # print(session.query(Collection).get(75).vcodes[0].code)
 

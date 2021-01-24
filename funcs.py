@@ -297,22 +297,31 @@ def get_all_from_base(xlxs_rows, session):
 
 def add_boxes_to_vcodes(xlxs_rows, session):
     """Выгрузка из ABC"""
+
+    def find_collection(collection_name, collections):
+        for _coll in collections:
+            if _coll.name == collection_name:
+                return _coll
+        return None
+        
     codes = session.query(VCode).all()
     collections = session.query(Collection).all()
 
     response = []
     need_commit = False
     for i, row in enumerate(xlxs_rows):
-        vcode = row[0]
+        vcode = str(row[0])
         name = row[1]
         collection = row[2]
         box = row[3]
 
-        collection_in_base = None
-        for _coll in collections:
-            if _coll.name == collection:
-                collection_in_base = _coll
-                break
+        collection_in_base = find_collection(collection, collections)
+
+        if collection_in_base and collection_in_base.id != 125:
+            if box and box != collection_in_base.boxes:
+                collection = collection + "_" + str(box)
+                collection_in_base = find_collection(collection, collections)
+
         if not collection_in_base:
             response.append("added collection %s" % collection)
             session.add(Collection(collection, box))
@@ -328,6 +337,10 @@ def add_boxes_to_vcodes(xlxs_rows, session):
                     code_in_base.collection_id = collection_in_base.id
                     need_commit = True
                     response.append("added collection to %s" % vcode)
+                elif int(code_in_base.collection_id) != collection_in_base.id:
+                    code_in_base.collection_id = collection_in_base.id
+                    need_commit = True
+                    response.append("changed collection to %s" % vcode)
                 break
         if not code_in_base:
             response.append("added vcode %s" % vcode)
