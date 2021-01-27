@@ -142,7 +142,7 @@ def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
             row.vcode = code_in_base.code
 
         if in_boxes:
-            if code_in_base.collection:
+            if code_in_base.collection and not check_for_photo(session, vcode, row):
                 if boxes_num:
                     row.number = code_in_base.collection.boxes * int(boxes_num)
                     boxes_num = 0
