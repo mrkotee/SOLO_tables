@@ -13,5 +13,8 @@ base_path = solo_path + r'base.bd'
 replace_dict = {
     'Е': 'E',
     'Р': 'P',
-}
+    'А': 'A',
+    'К': 'K',
+
+}  # key - letter in russian, value - letter in english
 

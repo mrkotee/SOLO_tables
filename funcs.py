@@ -85,6 +85,9 @@ def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
             skip = True
             # boxes_num = int(data_list[i+1][1:])
             boxes_num = data_list[i+1].replace("*", "")
+        elif len(data_list[i+1]) < 3 and not data_list[i+1][0].isdigit():
+            skip = True
+            data_list[i+2] = data_list[i+1] + data_list[i+2]
         else:
             in_boxes = False
             skip = True
@@ -115,7 +118,7 @@ def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
             code_in_base = find_code(vcode, session)
             if not code_in_base:
                 row.consig = ""
-                # row.comment += "Артикул не найден "
+                row.comment += "Артикул не найден "
                 continue
 
             elif len(code_in_base) > 1:
