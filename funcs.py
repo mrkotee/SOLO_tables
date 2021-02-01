@@ -77,6 +77,11 @@ def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
             continue
 
         vcode = data_list[i]
+
+        if len(vcode) < 4 and not vcode[0].isdigit():
+            data_list[i+1] = vcode + data_list[i+1]
+            continue
+
         if i == for_range.stop-1 or len(data_list[i+1]) > 3:
             in_boxes = True
             # skip = True
@@ -85,7 +90,7 @@ def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
             skip = True
             # boxes_num = int(data_list[i+1][1:])
             boxes_num = data_list[i+1].replace("*", "")
-        elif len(data_list[i+1]) < 3 and not data_list[i+1][0].isdigit():
+        elif len(data_list[i+1]) < 4 and not data_list[i+1][0].isdigit():
             skip = True
             data_list[i+2] = data_list[i+1] + data_list[i+2]
         else:

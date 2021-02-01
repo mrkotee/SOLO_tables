@@ -301,6 +301,11 @@ def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
             continue
 
         vcode = data_list[i]
+
+        if len(vcode) < 4 and not vcode[0].isdigit():
+            data_list[i+1] = vcode + data_list[i+1]
+            continue
+
         if i == for_range.stop-1 or len(data_list[i+1]) > 3:
             in_boxes = True
             # skip = True
@@ -309,6 +314,9 @@ def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
             skip = True
             # boxes_num = int(data_list[i+1][1:])
             boxes_num = data_list[i+1].replace("*", "")
+        elif len(data_list[i+1]) < 4 and not data_list[i+1][0].isdigit():
+            skip = True
+            data_list[i+2] = data_list[i+1] + data_list[i+2]
         else:
             in_boxes = False
             skip = True
@@ -339,7 +347,7 @@ def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
             code_in_base = find_code(vcode, session)
             if not code_in_base:
                 row.consig = ""
-                # row.comment += "Артикул не найден "
+                row.comment += "Артикул не найден "
                 continue
 
             elif len(code_in_base) > 1:
@@ -363,7 +371,7 @@ def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
             row.vcode = code_in_base.code
 
         if in_boxes:
-            if code_in_base.collection:
+            if code_in_base.collection and not check_for_photo(session, vcode, row):
                 if boxes_num:
                     row.number = code_in_base.collection.boxes * int(boxes_num)
                     boxes_num = 0
@@ -411,22 +419,16 @@ def get_for_table(data_str, all_boxes_num=0, uni_boxes_num=0):
 
 
 def find_code(vcode, session):
-    # code_in_base = session.query(VCode).filter(vcode in VCode.code).first()
     code_in_base = session.query(VCode).filter(VCode.code.contains(vcode)).all()
 
     if not code_in_base:
         return False
     len_vcode = len(vcode)
-    # print('len_vcode', len_vcode)
     for i, code in enumerate(code_in_base.copy()):
-        # print(len(code.code))
-        if len(code.code) > len_vcode+2 and code.code[1].isdigit():
+        if code.code[0].isdigit():  # len(code.code) > len_vcode+2 and 
             code_in_base.remove(code)
-
-
     # if len(code_in_base) > 1:
     #     return min([code.code for code in code_in_base], key=len)
-
     return code_in_base
 
 
@@ -583,6 +585,9 @@ if __name__ == '__main__':
     Session = sessionmaker(bind=engine)
     session = Session()
 
+
+
+    ######  speed test ########
     # start = time.time()
     # get_one_by_one()
     # end = time.time()
@@ -594,83 +599,54 @@ if __name__ == '__main__':
     # end = time.time()
     # print("get_all_from_base done in {} sec".format(end-start))
 
+    ############################
+
+
     # add_to_base()
-
-    # add_vcodes()
-
-
-
-
-
-    xlxs_abc_filepath = r'/home/django/bike_shop/solo/abc.xlsx'
-    # xlxs_abc_filepath = r'/home/django/bike_shop/solo/abc_test.xlsx'
-    xlxs_rows = read_abc_xlxs(xlxs_abc_filepath)
-    changed_positions = add_boxes_to_vcodes(xlxs_rows, session)
-
-
-    # check_collection(xlxs_rows, session)
-    # changed_positions = change_collection_boxes(xlxs_rows, session)
-
-    for change in changed_positions:
-        print(change)
 
 
     # filepath = r'/home/django/bike_shop/solo/base.xlsx'
     # add_vcodes()
 
-    # request_str = "EL21201 2 e37105 *2 N55664 4 167062-90 894P8 136P8  RMG2303-1  2303-1"
-    # # request_str = "21201 37108 *20 55664 167062-90 894p8 136p4"
-    # # request_str = "240509 240461"
-    # response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
-    # for row in response:
-    #     print(row.vcode, row.consig, row.number, row.comment)
 
-    # print(session.query(Collection).get(75).vcodes[0].code)
 
-    # request_str = "21201 37105 55664 167062-90 894p8 136p4"
-    # for code in request_str.split():
-    #     resp = find_code(code, session)
-    #     # print(resp)
-    #     print(code)
-    #     for r in resp:
-    #         print(r.code, r.id, [c.name for c in r.consigments])
-    #         print()
+    #######  abc tests ########
+
+    # xlxs_abc_filepath = r'/home/django/bike_shop/solo/abc.xlsx'
+    # xlxs_abc_filepath = r'/home/django/bike_shop/solo/abc_test.xlsx'
+    # xlxs_rows = read_abc_xlxs(xlxs_abc_filepath)
+    # changed_positions = add_boxes_to_vcodes(xlxs_rows, session)
+
+
+    # check_collection(xlxs_rows, session)
+    # changed_positions = change_collection_boxes(xlxs_rows, session)
+
+    # for change in changed_positions:
+    #     print(change)
+
+    ###########################
+
+
+
+
+    ###### table tests ########
+
+    request_str = "rmg 2301-1 EL21201 2 e37105 *2 N55664 4 167062-90 894P8 136P8  RMG2303-1  2303-1  ak 20115 ак2031 2050 ak2050"
+    # request_str = "21201 37108 *20 55664 167062-90 894p8 136p4"
+    # request_str = "240509 240461"
+    response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
+    for row in response:
+        print(row.vcode, row.consig, row.number, row.comment)
+
+
+    #############################
+
+
 
     # find_duplicates()
 
-    # request_str = '37108'
-    # cc = find_code(request_str, session)
-    # for code in cc:
-    #     print(code.id, code.code)
-    #     for consig in code.consigments:
-    #         print(consig.id, consig.name , consig.amount, consig.vendor_code.code)
 
 
 
-    # print("*"*50)
-    # wb = load_workbook(filename=filepath)
-    # ws = wb[wb.sheetnames[0]]
-
-    # last_r = None
-    # new_r = None
-    # for i, row in enumerate(ws.iter_rows()):
-    #     # if i == 2281:
-    #     # if i in [2281, 2280, 2279]:
-    #     if row[0].value.split()[0] == "E37108":
-    #         for r in row:
-    #             print(r.value)
-    #         # break
-    # wb.close()
-
-
-    # consigs = session.query(Consigment).all()
-    # consig_in_base = None
-    # for _consig in consigs:
-    #     if _consig.name == '012' and _consig.amount == 9:
-    #         print(_consig.id , _consig.vendor_code.code)
-
-    # for _consig in consigs:
-    #     if not _consig.amount:
-    #         print(_consig.id, session.query(VCode).get(_consig.vcode_id).code)
 
     session.close()

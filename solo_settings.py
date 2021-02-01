@@ -9,6 +9,8 @@ xlxs_abc_filepath = solo_path + r'abc.xlsx'
 
 base_path = solo_path + r'base.bd'
 
+statistics_base_path = solo_path + r'statistics_base.bd'
+
 
 replace_dict = {
     'Е': 'E',
