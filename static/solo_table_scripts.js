@@ -123,3 +123,19 @@ $(document).on("keydown", "input.number", function(e) {
 		})
 	}
 });
+
+
+$(document).ready(function(){
+	$("#boxes").click(function(){
+		textarea = $("textarea")[0];
+		var textarea_value = textarea.value;
+		var textarea_array = textarea_value.match(/\S+/g);
+
+		for (var i = 0; i < textarea_array.length; i++) {
+			if (textarea_array[i].length < 3 && !isNaN(textarea_array[i])) {
+				textarea_array[i] = '*' + textarea_array[i] + '\n'
+			};
+		};
+		textarea.value = textarea_array.join(' ')
+	});
+});

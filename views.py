@@ -11,6 +11,7 @@ from .models import base_path, VCode, Consigment, Collection, Table_row, path_fo
 from .funcs import get_for_table, get_all_from_base, read_xlxs, add_boxes_to_vcodes, read_abc_xlxs
 from .solo_settings import xlxs_filepath, xlxs_abc_filepath
 from .celery_tasks import update_base
+from .contract_funcs import create_contract
 
 
 
@@ -152,3 +153,76 @@ def update_abc(request, file_receved=False):
                                         'file_receved': file_receved,
                                         'changed_positions': changed_positions,
                                         })
+
+
+
+def contract(request):
+
+    if request.method == 'GET':
+        return render(request, 'contract.html', {}
+                                        )
+    elif request.method == 'POST':
+        firm_type = request.POST.get('firm_type')
+        second_firm = request.POST.get('second_firm')
+        credit_limit = request.POST.get('credit_limit')
+        firm_name = request.POST.get('firm_name')
+        position = request.POST.get('position')
+        name = request.POST.get('name')
+        document = request.POST.get('document')
+        kpp = request.POST.get('kpp')
+        ogrnip = request.POST.get('ogrnip')
+        gender = request.POST.get('gender')
+        pers_id_series = request.POST.get('pers_id_series')
+        pers_id_number = request.POST.get('pers_id_number')
+        pers_id_gover = request.POST.get('pers_id_gover')
+        firm_id = request.POST.get('firm_id')
+        post_address = request.POST.get('post_address')
+        firm_address = request.POST.get('firm_address')
+        current_account = request.POST.get('current_account')
+        corr_account = request.POST.get('corr_account')
+        bank_bik = request.POST.get('bank_bik')
+        bank_name = request.POST.get('bank_name')
+
+
+        create_contract(firm_type,
+                        second_firm, 
+                        position,
+                        firm_name,
+                        name,
+                        document,
+                        credit_limit,
+                        post_address,
+                        firm_address,
+                        firm_id,
+                        kpp,
+                        current_account,
+                        bank_name,
+                        corr_account,
+                        bank_bik,
+                        ogrnip,
+                        gender,
+                        pers_id_series,
+                        pers_id_number,
+                        pers_id_gover)
+
+        # return HttpResponse(json.dumps(result), content_type="application/json")
+        return HttpResponse(json.dumps((firm_type,
+                                        second_firm,
+                                        credit_limit,
+                                        position,
+                                        name,
+                                        document,
+                                        kpp,
+                                        ogrnip,
+                                        gender,
+                                        pers_id_series,
+                                        pers_id_number,
+                                        pers_id_gover,
+                                        firm_id,
+                                        post_address,
+                                        firm_address,
+                                        current_account,
+                                        corr_account,
+                                        bank_bik,
+                                        bank_name)), content_type="application/json")
+

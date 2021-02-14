@@ -1,0 +1,101 @@
+{% load staticfiles %}
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<title>
+    {% block title %}
+         Создание договора
+    {% endblock %}
+</title>
+<link href="{% static 'css/bootstrap.css' %}" rel='stylesheet' type='text/css' />
+<!-- jQuery (Bootstrap's JavaScript plugins) -->
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<!-- Custom Theme files -->
+<link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css" media="all" />
+<!-- Custom Theme files -->
+{% block css %}{% endblock %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!--webfont-->
+<link href='https://fonts.googleapis.com/css?family=Roboto:500,900,100,300,700,400' rel='stylesheet' type='text/css'>
+<script src="{% static 'js/jquery.easydropdown.js' %}"></script>
+<link href="{% static 'css/nav.css' %}" rel="stylesheet" type="text/css" media="all"/>
+<!--webfont-->
+<!-- dropdown -->
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
+    <script>
+        $(document).ready(function(){
+            $("#firm_type").click(function(){
+                if (this.selectedIndex === 0) {
+                    $(".ooo").hide()
+                    $(".ip").show()
+                }
+                else if (this.selectedIndex === 1) {
+                    $(".ip").hide()
+                    $(".ooo").show()
+                };
+            });
+        });
+        $(document).ready(function(){
+            if ($("#firm_type")[0].selectedIndex === 0) {
+                $(".ooo").hide()
+                $(".ip").show()
+            }
+            else if ($("#firm_type")[0].selectedIndex === 1) {
+                $(".ip").hide()
+                $(".ooo").show()
+            };
+
+        });
+    </script>
+</head>
+<body>
+
+<div class="contact" style="background: none">
+    <div class="container">
+        <form method="post" action="/solo/contract/">
+            {% csrf_token %}
+            <p>
+                <select name="firm_type" id="firm_type" size="2">
+                    <option selected value="1">ИП</option>
+                    <option value="2">ООО</option>
+                </select>
+            </p>
+            <p>
+                <select name="second_firm" size="2">
+                    <option selected value="1">Альянс декор</option>
+                    <option value="2">Соло декор</option>
+                </select>
+            </p>
+            <p>отсрочка<input type="number" name="credit_limit" placeholder="пропустить если предоплата"></p>
+            <p class="ooo">Наименование фирмы<input type="text" name="firm_name"></p>
+            <p class="ooo">Должность подписанта<input type="text" name="position" value="Директор"></p>
+            <p class="ooo">Подписант<input type="text" name="name"></p>
+            <p class="ooo">На основании<input type="text" name="document" value="Устава"></p>
+            <p class="ooo">КПП<input type="number" name="kpp"></p>
+            <p class="ip">ФИО<input type="text" name="name"></p>
+            <p class="ip">ОГРНИП<input type="number" name="ogrnip"></p>
+            <p class="ip">
+                <input type="radio" name="gender" checked>именуемый
+                <input type="radio" name="gender">именуемая
+            </p>
+            <p class="ip">Паспорт серия<input type="number" name="pers_id_series"> номер<input type="number" name="pers_id_number">
+                            выдан <input type="text" name="pers_id_gover">
+            </p>
+            <p>ИНН<input type="number" name="firm_id"></p>
+            <p>Почтовый адрес<input type="text" name="post_address"></p>
+            <p>Юридический адрес<input type="text" name="firm_address"></p>
+            <p>р/с<input type="number" name="current_account"></p>
+            <p>к/с<input type="number" name="corr_account"></p>
+            <p>БИК<input type="number" name="bank_bik"></p>
+            <p>Название банка<input type="text" name="bank_name"></p>
+                <input type="submit" value="создать договор">
+
+
+        </form>
+    </div>
+</div>
+</body>
+</html>
