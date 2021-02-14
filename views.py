@@ -1,6 +1,6 @@
 import os
 from django.http import Http404, HttpResponse, FileResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.core.files.storage import FileSystemStorage
 import json
 from sqlalchemy import create_engine
@@ -205,8 +205,9 @@ def contract(request):
                         pers_id_number,
                         pers_id_gover)
 
+        return redirect('/solo/contracts/%s' % contract_filename)
         response = HttpResponse(FileResponse(open(contract_filepath, 'rb')), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-        response['Content-Disposition'] = 'attachment; filename="%s"' % contract_filename
+        response['Content-Disposition'] = 'attachment; filename*=UTF-8"%s"' % contract_filename
         return response
         # return HttpResponse(json.dumps(result), content_type="application/json")
         return HttpResponse(json.dumps((firm_type,
