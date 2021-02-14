@@ -1,5 +1,5 @@
 import os
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, FileResponse
 from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
 import json
@@ -184,7 +184,7 @@ def contract(request):
         bank_name = request.POST.get('bank_name')
 
 
-        create_contract(firm_type,
+        contract_filename, contract_filepath = create_contract(firm_type,
                         second_firm, 
                         position,
                         firm_name,
@@ -205,6 +205,9 @@ def contract(request):
                         pers_id_number,
                         pers_id_gover)
 
+        response = HttpResponse(FileResponse(open(contract_filepath, 'rb')), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % contract_filename
+        return response
         # return HttpResponse(json.dumps(result), content_type="application/json")
         return HttpResponse(json.dumps((firm_type,
                                         second_firm,

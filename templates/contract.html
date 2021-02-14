@@ -49,13 +49,28 @@
             };
 
         });
+        $(document).ready(function(){
+            $("input[name='credit_limit']").on('input', function() {
+                if (this.value != 0) {
+                    this.parentElement.lastChild.textContent = 'дней'
+                } else {
+                    this.parentElement.lastChild.textContent = '*оставить пустым для предоплаты'
+                };
+            });
+        });
     </script>
+    <style type="text/css">
+        form input[type="text"] {
+            margin-bottom: 0px !important;
+            width: 100% !important;
+        }
+    </style>
 </head>
 <body>
 
 <div class="contact" style="background: none">
     <div class="container">
-        <form method="post" action="/solo/contract/">
+        <form method="post" action="/solo/contract/" style="text-align: left; ">
             {% csrf_token %}
             <p>
                 <select name="firm_type" id="firm_type" size="2">
@@ -69,7 +84,7 @@
                     <option value="2">Соло декор</option>
                 </select>
             </p>
-            <p>отсрочка<input type="number" name="credit_limit" placeholder="пропустить если предоплата"></p>
+            <p>отсрочка<input type="number" name="credit_limit" placeholder="предоплата"> *оставить пустым для предоплаты</p>
             <p class="ooo">Наименование фирмы<input type="text" name="firm_name"></p>
             <p class="ooo">Должность подписанта<input type="text" name="position" value="Директор"></p>
             <p class="ooo">Подписант<input type="text" name="name"></p>
@@ -81,7 +96,7 @@
                 <input type="radio" name="gender" checked>именуемый
                 <input type="radio" name="gender">именуемая
             </p>
-            <p class="ip">Паспорт серия<input type="number" name="pers_id_series"> номер<input type="number" name="pers_id_number">
+            <p class="ip">Паспорт серия<input type="number" name="pers_id_series" style="width: 70px;"> номер<input type="number" name="pers_id_number" style="width: 85px;">
                             выдан <input type="text" name="pers_id_gover">
             </p>
             <p>ИНН<input type="number" name="firm_id"></p>

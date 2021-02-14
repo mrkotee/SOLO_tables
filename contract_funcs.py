@@ -156,3 +156,4 @@ def create_contract(firm_type,
     result_filename = ' '.join(result_filename_list) + '.docx'
     save_path = os.path.join(solo_path, 'contracts', result_filename)
     doc.save(save_path)
+    return result_filename, save_path
