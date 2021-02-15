@@ -171,7 +171,7 @@ def contract(request):
         document = request.POST.get('document')
         kpp = request.POST.get('kpp')
         ogrnip = request.POST.get('ogrnip')
-        gender = request.POST.get('gender')
+        gender = int(request.POST.get('gender'))
         pers_id_series = request.POST.get('pers_id_series')
         pers_id_number = request.POST.get('pers_id_number')
         pers_id_gover = request.POST.get('pers_id_gover')
@@ -183,7 +183,12 @@ def contract(request):
         bank_bik = request.POST.get('bank_bik')
         bank_name = request.POST.get('bank_name')
 
-
+        #gender_1 = request.POST.get('gender_1')
+        #gender_2 = request.POST.get('gender_2')
+        #if gender_2:
+        #    gender = 2
+        #else:
+        #    gender = 1
         contract_filename, contract_filepath = create_contract(firm_type,
                         second_firm, 
                         position,
