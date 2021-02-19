@@ -60,7 +60,8 @@ def check_for_photo(session, vcode, row):
         return True
     return False
 
-def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
+def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0,
+                    get_all_consigs=True):
     # data_list = data_str.split()
     data_list = data_str
     """выше не менять"""
@@ -168,19 +169,47 @@ def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0):
                         row.consig = consig.name
                     break
             if not enough:
-                row.comment += "Недостаточно на св. остатке."
-                add_comment = " в наличии есть партии: "
-                max_num_consig = None
-                max_num = 0
-                for consig in code_in_base.consigments:
-                    if consig.amount >= 0:
-                        if consig.amount > max_num:
-                            max_num_consig = consig.name
-                            max_num = consig.amount
-                        add_comment += "{} {} рул. ".format(consig.name, consig.amount)
-                row.consig = max_num_consig
-                if len(add_comment) > 24:
-                    row.comment += add_comment
+                if get_all_consigs:
+                    _num = int(row.number)
+                    _consigs = sorted([cons for cons in code_in_base.consigments], 
+                                        reverse=True, key=lambda cc: cc.amount)
+                    for _consig in _consigs:
+                        if _consig.amount > row.number:
+                            row.consig = _consig.name
+                            break
+                        else:
+                            if in_boxes:
+                                rolls_in_box = code_in_base.collection.boxes
+                                _num_from_consig = (_consig.amount // rolls_in_box) * rolls_in_box
+                                if _num_from_consig == 0:
+                                    continue
+                                _num -= _num_from_consig
+                                row.number = _num_from_consig
+                            else:
+                                _num -= _consig.amount
+                                row.number = _consig.amount
+                            row.comment += "Недостаточно на св. остатке."
+                            row.consig = _consig.name
+
+                            row = Table_row(row.vcode, _num, consig='Общая')
+                            table_rows.append(row)
+
+                    row.comment += "Недостаточно на св. остатке."
+
+                else:
+                    row.comment += "Недостаточно на св. остатке."
+                    add_comment = " в наличии есть партии: "
+                    max_num_consig = None
+                    max_num = 0
+                    for consig in code_in_base.consigments:
+                        if consig.amount >= 0:
+                            if consig.amount > max_num:
+                                max_num_consig = consig.name
+                                max_num = consig.amount
+                            add_comment += "{} {} рул. ".format(consig.name, consig.amount)
+                    row.consig = max_num_consig
+                    if len(add_comment) > 24:
+                        row.comment += add_comment
         else:
             row.comment = "Партий не найдено"
             if not check_for_photo(session, vcode, row):

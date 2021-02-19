@@ -30,6 +30,7 @@ def main(request, data_receved=False):
 def table(request):
     boxes_num = 0
     uni_boxes_num = 0
+    get_all_consigs = False
     if request.method == 'GET':
         data = request.GET['data']
 
@@ -37,9 +38,15 @@ def table(request):
         data = request.POST.get('data')
         boxes_num = request.POST.get('boxes_num')
         uni_boxes_num = request.POST.get('uni_boxes_num')
+        get_all_consigs = request.POST.get('get_all_consigs')
 
     else:
         raise Http404
+
+    if get_all_consigs:
+        get_all_consigs = True
+    else:
+        get_all_consigs = False
 
     data_list = data.split()
 
@@ -48,13 +55,18 @@ def table(request):
     session = Session()
     if boxes_num:
         if uni_boxes_num:
-            table_rows = get_for_table(data_list, session, boxes_num, uni_boxes_num)
+            table_rows = get_for_table(data_list, session, 
+                                        boxes_num, uni_boxes_num,
+                                        get_all_consigs)
         else:
-            table_rows = get_for_table(data_list, session, boxes_num)
+            table_rows = get_for_table(data_list, session, 
+                                    boxes_num, get_all_consigs)
     elif uni_boxes_num:
-        table_rows = get_for_table(data_list, session, uni_boxes_num=uni_boxes_num)
+        table_rows = get_for_table(data_list, session, 
+                                    get_all_consigs, 
+                                    uni_boxes_num=uni_boxes_num)
     else:
-        table_rows = get_for_table(data_list, session)
+        table_rows = get_for_table(data_list, session, get_all_consigs)
 
     session.close()
     

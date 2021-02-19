@@ -634,9 +634,9 @@ if __name__ == '__main__':
     request_str = "rmg 2301-1 EL21201 2 e37105 *2 N55664 4 167062-90 894P8 136P8  RMG2303-1  2303-1  ak 20115 ак2031 2050 ak2050"
     # request_str = "21201 37108 *20 55664 167062-90 894p8 136p4"
     # request_str = "240509 240461"
-    response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
-    for row in response:
-        print(row.vcode, row.consig, row.number, row.comment)
+    # response = get_for_table(request_str, all_boxes_num=3, uni_boxes_num=6)
+    # for row in response:
+    #     print(row.vcode, row.consig, row.number, row.comment)
 
 
     #############################
@@ -646,7 +646,60 @@ if __name__ == '__main__':
     # find_duplicates()
 
 
+    # table_rows = []
 
+    request_str = '37011-3 *50'
+    # in_boxes = True
+
+    # row = Table_row(request_str, 130)
+    # table_rows.append(row)
+
+    # code_in_base = session.query(VCode).filter(VCode.code == request_str).first()
+
+    # print(code_in_base)
+    # print(code_in_base.consigments)
+
+    # for consig in code_in_base.consigments:
+    #     print(consig.name, consig.amount)
+
+    # enough = False
+    # for consig in code_in_base.consigments:
+    #     if consig.amount >= row.number:
+    #         enough = True
+    #         if consig.name:
+    #             row.consig = consig.name
+    #         break
+    # if not enough:
+
+    #     _num = row.number
+    #     _consigs = sorted([cons for cons in code_in_base.consigments], reverse=True, key=lambda cc: cc.amount)
+    #     for _consig in _consigs:
+    #         if in_boxes:
+    #             rolls_in_box = code_in_base.collection.boxes
+    #             _num_from_consig = (_consig.amount // rolls_in_box) * rolls_in_box
+    #             if _num_from_consig == 0:
+    #                 continue
+    #             _num -= _num_from_consig
+    #             row.number = _num_from_consig
+    #         else:
+    #             _num -= _consig.amount
+    #             row.number = _consig.amount
+    #         row.comment += "Недостаточно на св. остатке."
+    #         row.consig = _consig.name
+
+    #         row = Table_row(row.vcode, _num, consig='Общая')
+    #         table_rows.append(row)
+
+    #     row.comment += "Недостаточно на св. остатке."
+
+
+
+    from funcs import get_for_table
+
+    t_r = get_for_table(request_str.split(), session, )
+
+    for r in t_r:
+        print(r.__dict__)
 
 
     session.close()

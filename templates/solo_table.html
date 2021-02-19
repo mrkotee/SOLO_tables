@@ -62,6 +62,7 @@
 				{% csrf_token %}
 				<input placeholder="кол-во коробок" type="number" name="boxes_num">
 				<input placeholder="компаньон кол-во коробок" type="number" name="uni_boxes_num">
+				<input type="checkbox" name="get_all_consigs" value="on"> Собирать все партии
 				<textarea name='data' placeholder="АРТИКУЛ КОЛ-ВО_РУЛОНОВ АРТИКУЛ КОЛ-ВО_РУЛОНОВ и т.д. Для счета в коробках к количеству добавить зведочку(*) "></textarea>
 				<input type="submit" value="SEND">
 			</form>
