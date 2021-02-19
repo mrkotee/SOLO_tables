@@ -9,9 +9,11 @@ from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from openpyxl import load_workbook
 from .models import base_path, VCode, Consigment, Collection, Table_row, path_for_old_base
 from .funcs import get_for_table, get_all_from_base, read_xlxs, add_boxes_to_vcodes, read_abc_xlxs
-from .solo_settings import xlxs_filepath, xlxs_abc_filepath
-from .celery_tasks import update_base
+from .solo_settings import xlxs_filepath, xlxs_abc_filepath, docs_temp_dir
+from .celery_tasks import update_base, del_return_docs_temp
 from .contract_funcs import create_contract
+from .return_doc_funcs import get_doc_of_return
+from .return_doc_funcs import read_xlxs as read_return_doc_xlxs
 
 
 
@@ -168,6 +170,7 @@ def contract(request):
         firm_name = request.POST.get('firm_name')
         position = request.POST.get('position')
         name = request.POST.get('name')
+        director = request.POST.get('director')
         document = request.POST.get('document')
         kpp = request.POST.get('kpp')
         ogrnip = request.POST.get('ogrnip')
@@ -183,12 +186,9 @@ def contract(request):
         bank_bik = request.POST.get('bank_bik')
         bank_name = request.POST.get('bank_name')
 
-        #gender_1 = request.POST.get('gender_1')
-        #gender_2 = request.POST.get('gender_2')
-        #if gender_2:
-        #    gender = 2
-        #else:
-        #    gender = 1
+        if director:
+            name = director
+            
         contract_filename, contract_filepath = create_contract(firm_type,
                         second_firm, 
                         position,
@@ -211,27 +211,85 @@ def contract(request):
                         pers_id_gover)
 
         return redirect('/solo/contracts/%s' % contract_filename)
-        response = HttpResponse(FileResponse(open(contract_filepath, 'rb')), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-        response['Content-Disposition'] = 'attachment; filename*=UTF-8"%s"' % contract_filename
-        return response
+        # response = HttpResponse(FileResponse(open(contract_filepath, 'rb')), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        # response['Content-Disposition'] = 'attachment; filename*=UTF-8"%s"' % contract_filename
+        # return response
         # return HttpResponse(json.dumps(result), content_type="application/json")
-        return HttpResponse(json.dumps((firm_type,
-                                        second_firm,
-                                        credit_limit,
-                                        position,
-                                        name,
-                                        document,
-                                        kpp,
-                                        ogrnip,
-                                        gender,
-                                        pers_id_series,
-                                        pers_id_number,
-                                        pers_id_gover,
-                                        firm_id,
-                                        post_address,
-                                        firm_address,
-                                        current_account,
-                                        corr_account,
-                                        bank_bik,
-                                        bank_name)), content_type="application/json")
+        # return HttpResponse(json.dumps((firm_type,
+        #                                 second_firm,
+        #                                 credit_limit,
+        #                                 position,
+        #                                 name,
+        #                                 director,
+        #                                 document,
+        #                                 kpp,
+        #                                 ogrnip,
+        #                                 gender,
+        #                                 pers_id_series,
+        #                                 pers_id_number,
+        #                                 pers_id_gover,
+        #                                 firm_id,
+        #                                 post_address,
+        #                                 firm_address,
+        #                                 current_account,
+        #                                 corr_account,
+        #                                 bank_bik,
+        #                                 bank_name)), content_type="application/json")
 
+
+def return_docs(request):
+
+    if request.method == 'GET':
+        return render(request, 'return_docs.html', {'text': 'test'}
+                                        )
+    elif request.method == 'POST':
+        file = request.FILES['file']
+        u_file = file.read()
+
+        temp_filepath = docs_temp_dir + '{}.xlsx'.format(request.session.session_key)
+        with open(temp_filepath, 'wb') as f:
+            f.write(u_file)
+
+
+        try:
+            positions = read_return_doc_xlxs(xlxs_filepath)
+        except Exception as e:
+            return render(request, 'return_docs.html', {
+                                        'file_receved': file_receved,
+                                        'wrong_file': True,
+                                        })
+
+        nds = request.POST.get('nds')
+        if nds:
+            nds = True
+        else:
+            nds = False
+
+        data = request.POST.get('data')
+        data_list = data.split()
+
+
+        engine = create_engine('sqlite:///%s' % base_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        return_vcodes_dict = {}
+        for table_row in get_for_table(data_list, session):
+            return_vcodes_dict[str(table_row.vcode)] = table_row.number
+
+        session.close()
+
+        filename = 'возврат {}.xlsx'.format(' '.join(return_vcodes_dict.keys()))
+        save_to = docs_temp_dir + filename
+
+        get_doc_of_return(temp_filepath, return_vcodes_dict, save_to, nds)
+
+        del_return_docs_temp.delay(temp_filepath)
+        del_return_docs_temp.delay(save_to)
+
+        return redirect('/solo/r_docs/%s' % filename)
+
+        file_receved = True
+        return render(request, 'return_docs.html', {
+                                        'file_receved': file_receved,
+                                        })

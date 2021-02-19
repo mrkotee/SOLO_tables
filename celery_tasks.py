@@ -1,5 +1,5 @@
 
-import os
+import os, time
 from celery import Celery
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -41,3 +41,9 @@ def update_base():
 
     new_path = path_for_old_base(update_time=True)
     os.system(r'cp {} {}'.format(base_path, new_path))
+
+
+@app.task()
+def del_return_docs_temp(filepath):
+    time.sleep(15)
+    os.remove(filepath)

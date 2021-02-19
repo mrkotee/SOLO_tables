@@ -29,10 +29,16 @@
         $(document).ready(function(){
             $("#firm_type").click(function(){
                 if (this.selectedIndex === 0) {
+                    var name = $(".ooo input[name='director']")[0].value
+                    $(".ip input[name='name']")[0].value = name
+                    $(".ooo input[name='director']")[0].value = ''
                     $(".ooo").hide()
                     $(".ip").show()
                 }
                 else if (this.selectedIndex === 1) {
+                    var name = $(".ip input[name='name']")[0].value
+                    $(".ooo input[name='director']")[0].value = name
+                    $(".ip input[name='name']")[0].value = ''
                     $(".ip").hide()
                     $(".ooo").show()
                 };
@@ -42,6 +48,7 @@
             if ($("#firm_type")[0].selectedIndex === 0) {
                 $(".ooo").hide()
                 $(".ip").show()
+
             }
             else if ($("#firm_type")[0].selectedIndex === 1) {
                 $(".ip").hide()
@@ -88,7 +95,7 @@
             <p>отсрочка<input type="number" name="credit_limit" placeholder="предоплата"> *оставить пустым для предоплаты</p>
             <p class="ooo">Наименование фирмы<input type="text" name="firm_name"></p>
             <p class="ooo">Должность подписанта<input type="text" name="position" value="Директор"></p>
-            <p class="ooo">Подписант<input type="text" name="name"></p>
+            <p class="ooo">Подписант<input type="text" name="director"></p>
             <p class="ooo">На основании<input type="text" name="document" value="Устава"></p>
             <p class="ooo">КПП<input type="number" name="kpp"></p>
             <p class="ip">ФИО<input type="text" name="name"></p>

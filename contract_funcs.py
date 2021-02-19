@@ -36,11 +36,19 @@ def create_contract(firm_type,
     morph = pymorphy2.MorphAnalyzer()
 
 
-    def morph_word(word_string):
+    def morph_word(word_string, morph_set, its_name=True):
         result_string = ''
         for _word in word_string.split():
-            word = morph.parse(_word)[0]
-            result_string += word.inflect({'sing', 'accs'}).word + ' '
+            parsed = morph.parse(_word)
+            word = None
+            if len(parsed) > 1 and its_name:
+                for _w in parsed:
+                    if 'Sgtm' in _w.tag:
+                        word = _w
+            if not word:
+                word = parsed[0]
+
+            result_string += word.inflect(morph_set).word + ' '
         return result_string
 
 
@@ -84,9 +92,9 @@ def create_contract(firm_type,
         date_today += 'г.'
     expire_date = '«{:02d}» {} {} года'.format(dt.now().day, mounth_names[dt.now().month], dt.now().year+3)
 
-    position_1 = morph_word(position)
+    position_1 = morph_word(position, {'sing', 'accs'}, its_name=False)
     if 'u_l' in word_path:
-        director = morph_word(name)
+        director = morph_word(name, {'sing', 'accs'}, its_name=True)
     else:
         director = name
     # document = morph_word(document)
@@ -100,7 +108,7 @@ def create_contract(firm_type,
         director_short += w
 
     if credit_limit:
-        credit_limit = '{} ({})'.format(credit_limit, num2text(credit_limit))  ## добавить календарных дней
+        credit_limit = '{} ({})'.format(credit_limit, morph_word(num2text(credit_limit), {'gent'}, its_name=False).rstrip())  ## добавить календарных дней
         if 'solo_decor_u' in word_path:
             credit_limit += ' календарных дней'
         elif 'solo_decor_ip' in word_path:

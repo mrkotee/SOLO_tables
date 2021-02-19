@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from .views import main, table, update, update_abc,contract
+from .views import main, table, update, update_abc, contract, return_docs
 
 
 urlpatterns = [
@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^update/$', update),
     url(r'^update_abc/$', update_abc),
     url(r'^contract/$', contract),
+    url(r'^return/$', return_docs),
 ]
 
 # urlpatterns = [

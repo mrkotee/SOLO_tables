@@ -11,6 +11,8 @@ base_path = solo_path + r'base.bd'
 
 statistics_base_path = solo_path + r'statistics_base.bd'
 
+docs_temp_dir = solo_path + r'docs_temp/'
+
 
 replace_dict = {
     'Е': 'E',
