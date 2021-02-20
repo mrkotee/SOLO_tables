@@ -1,0 +1,81 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+	{% block title %}
+		 Возврат ТОРГ-12
+	{% endblock %}
+</title>
+<link href="{% static 'css/bootstrap.css' %}" rel='stylesheet' type='text/css' />
+<!-- jQuery (Bootstrap's JavaScript plugins) -->
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<!-- Custom Theme files -->
+<link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css" media="all" />
+<!-- Custom Theme files -->
+{% block css %}{% endblock %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!-- <meta name="keywords" content="Bike-shop Responsive web template, Bootstrap Web Templates, Flat Web Templates, Andriod Compatible web template, 
+Smartphone Compatible web template, free webdesigns for Nokia, Samsung, LG, SonyErricsson, Motorola web design" /> -->
+<script type="application/x-javascript"> addEventListener("load", function() { setTimeout(hideURLbar, 0); }, false); function hideURLbar(){ window.scrollTo(0,1); } </script>
+<!--webfont-->
+<link href='https://fonts.googleapis.com/css?family=Roboto:500,900,100,300,700,400' rel='stylesheet' type='text/css'>
+<!--webfont-->
+<!-- dropdown -->
+<script src="{% static 'js/jquery.easydropdown.js' %}"></script>
+<link href="{% static 'css/nav.css' %}" rel="stylesheet" type="text/css" media="all"/>
+
+<style type="text/css">
+	table {
+		position: relative; 
+		margin-left: auto;
+		margin-right: auto;
+		border: 1px solid grey;
+	}
+	tr {
+		border: 1px solid grey;
+		padding: 5px;
+	}
+	th {
+		border: 1px solid grey;
+		padding: 5px;
+		text-align: center;
+	}
+	td {
+		border: 1px solid grey;
+		padding: 5px;
+	}
+</style>
+
+</head>
+<body>
+
+<div class="contact" style="background: none">
+	<div class="container">
+		<a href="/solo/">вернуться к форме</a>
+		<h3>Изменение ТОРГ-12</h3>
+		**ввести артикулы и количество, вложить ТОРГ-12 по которой они отгружались**
+		{% if not file_receved %}
+			<form enctype="multipart/form-data" method="post" action="/solo/return/">
+				{% csrf_token %}
+				<input type="checkbox" name="nds" value="on"> Оставить НДС
+				<textarea name='data' placeholder="АРТИКУЛ КОЛ-ВО_РУЛОНОВ"></textarea>
+				<input type="file" name="file" accept="xlx">
+				<input type="submit" value="SEND">
+			</form>
+			<br>
+		{% elif wrong_file %}
+			<p>Неправильный файл</p>
+		{% else %}
+			<p>Готово!</p>
+			
+		{% endif %}
+	</div>
+</div>
+
+
+</body>
+</html>
+

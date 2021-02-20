@@ -252,7 +252,7 @@ def contract(request):
 def return_docs(request):
 
     if request.method == 'GET':
-        return render(request, 'return_docs.html', {'text': 'test'}
+        return render(request, 'return_docs.html', {}
                                         )
     elif request.method == 'POST':
         file = request.FILES['file']
@@ -264,7 +264,7 @@ def return_docs(request):
 
 
         try:
-            positions = read_return_doc_xlxs(xlxs_filepath)
+            positions = read_return_doc_xlxs(temp_filepath)
         except Exception as e:
             return render(request, 'return_docs.html', {
                                         'file_receved': file_receved,
@@ -279,6 +279,13 @@ def return_docs(request):
 
         data = request.POST.get('data')
         data_list = data.split()
+
+        if not data_list:
+            # return HttpResponse(json.dumps((data_list, positions, nds, temp_filepath)), content_type="application/json")
+            data_list = []
+            for pos in positions:
+                data_list.append(str(pos['vcode']))
+                data_list.append(str(pos['number']))
 
 
         engine = create_engine('sqlite:///%s' % base_path, echo=False)

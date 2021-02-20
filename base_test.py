@@ -648,7 +648,7 @@ if __name__ == '__main__':
 
     # table_rows = []
 
-    request_str = '37011-3 *50'
+    request_str = '11001-6 *50'
     # in_boxes = True
 
     # row = Table_row(request_str, 130)
