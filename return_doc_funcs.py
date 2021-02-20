@@ -91,7 +91,7 @@ def write_new_table(work_sheet, returned_vcodes_dict, nds):
     def change_positon_data(row_id, returned_vcodes_dict, nds, returned_rows_id):
         position = {}
         position['vcode_full'] = work_sheet.cell(row=row_id, column=3).value
-        position['vcode'] = work_sheet.cell(row=row_id, column=7).value
+        position['vcode'] = work_sheet.cell(row=row_id, column=7).value.upper()
         position['number'] = int(work_sheet.cell(row=row_id, column=17).value)
         position['weight'] = float(work_sheet.cell(row=row_id, column=21).value)
         position['price'] = float(work_sheet.cell(row=row_id, column=26).value)
