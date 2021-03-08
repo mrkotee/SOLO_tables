@@ -267,7 +267,7 @@ def return_docs(request):
             positions = read_return_doc_xlxs(temp_filepath)
         except Exception as e:
             return render(request, 'return_docs.html', {
-                                        'file_receved': file_receved,
+                                        'file_receved': True,
                                         'wrong_file': True,
                                         })
 
