@@ -50,6 +50,8 @@ def table(request):
 
     data_list = data.split()
 
+    # return HttpResponse(json.dumps((data, boxes_num, get_all_consigs)), content_type="application/json")
+
     engine = create_engine('sqlite:///%s' % base_path, echo=False)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -57,16 +59,16 @@ def table(request):
         if uni_boxes_num:
             table_rows = get_for_table(data_list, session, 
                                         boxes_num, uni_boxes_num,
-                                        get_all_consigs)
+                                        get_all_consigs=get_all_consigs)
         else:
             table_rows = get_for_table(data_list, session, 
-                                    boxes_num, get_all_consigs)
+                                    boxes_num, get_all_consigs=get_all_consigs)
     elif uni_boxes_num:
         table_rows = get_for_table(data_list, session, 
-                                    get_all_consigs, 
+                                    get_all_consigs=get_all_consigs, 
                                     uni_boxes_num=uni_boxes_num)
     else:
-        table_rows = get_for_table(data_list, session, get_all_consigs)
+        table_rows = get_for_table(data_list, session, get_all_consigs=get_all_consigs)
 
     session.close()
     

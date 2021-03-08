@@ -576,7 +576,7 @@ def change_collection_boxes(xlxs_rows, session):
 
 if __name__ == '__main__':
     base_filename = "base_test.bd"
-    base_path = os.path.join(os.getcwd(), base_filename)
+    # base_path = os.path.join(os.getcwd(), base_filename)
     # base_path = r'/home/django/bike_shop/solo/base_test.bd'
     # filepath = r'/home/django/bike_shop/solo/base.xlsx'
     filepath = os.path.join(os.getcwd(), "base.xlsx")
@@ -696,7 +696,9 @@ if __name__ == '__main__':
 
     from funcs import get_for_table
 
-    t_r = get_for_table(request_str.split(), session, )
+    request_str = '37108 '
+
+    t_r = get_for_table(request_str.split(), session, all_boxes_num=100, get_all_consigs=False)
 
     for r in t_r:
         print(r.__dict__)

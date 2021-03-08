@@ -61,7 +61,7 @@ def check_for_photo(session, vcode, row):
     return False
 
 def get_for_table(data_str, session, all_boxes_num=0, uni_boxes_num=0,
-                    get_all_consigs=True):
+                    get_all_consigs=False):
     # data_list = data_str.split()
     data_list = data_str
     """выше не менять"""
