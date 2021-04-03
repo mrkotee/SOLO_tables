@@ -93,7 +93,10 @@ def write_new_table(work_sheet, returned_vcodes_dict, nds):
         position['vcode_full'] = work_sheet.cell(row=row_id, column=3).value
         position['vcode'] = work_sheet.cell(row=row_id, column=7).value.upper()
         position['number'] = int(work_sheet.cell(row=row_id, column=17).value)
-        position['weight'] = float(work_sheet.cell(row=row_id, column=21).value)
+        try:
+            position['weight'] = float(work_sheet.cell(row=row_id, column=21).value)
+        except TypeError:
+            position['weight'] = ''
         position['price'] = float(work_sheet.cell(row=row_id, column=26).value)
         position['summ'] = float(work_sheet.cell(row=row_id, column=39).value)
         if nds:
@@ -113,10 +116,11 @@ def write_new_table(work_sheet, returned_vcodes_dict, nds):
                     work_sheet.cell(row=row_id, column=36).value = ''
 
                 if int(position['number']) != int(returned_vcode_num):
-                    new_weight = (float(position['weight']) / int(position['number'])) * int(
-                        returned_vcode_num)
-                    work_sheet.cell(row=row_id, column=21).value = new_weight
-                    position['weight'] = new_weight
+                    if position['weight']:
+                        new_weight = (float(position['weight']) / int(position['number'])) * int(
+                            returned_vcode_num)
+                        work_sheet.cell(row=row_id, column=21).value = new_weight
+                        position['weight'] = new_weight
                     new_summ = (float(position['summ']) / int(position['number'])) * int(
                         returned_vcode_num)
                     work_sheet.cell(row=row_id, column=39).value = new_summ
@@ -142,7 +146,7 @@ def write_new_table(work_sheet, returned_vcodes_dict, nds):
             work_sheet.cell(row=row_id, column=col_id+1).value = ''
         return None
 
-    def change_sum(row_id, sum_number, sum_weight, sum_summ, sum_without_nds, sum_nds=''):
+    def change_sum(row_id, sum_number, sum_summ, sum_without_nds, sum_weight='', sum_nds=''):
         work_sheet.cell(row=row_id, column=17).value = sum_number
         work_sheet.cell(row=row_id, column=24).value = sum_number
         work_sheet.cell(row=row_id, column=21).value = sum_weight
@@ -154,14 +158,20 @@ def write_new_table(work_sheet, returned_vcodes_dict, nds):
     table_end_cord = find_cells_cord('Итого')
 
     positions_list = []
+    has_weight = True
     for i, table_cords in enumerate(table_start_cord):
         for row_id in range(table_cords[0] + 3, table_end_cord[i][0]):
             position = change_positon_data(row_id, returned_vcodes_dict, nds, len(positions_list))
             if position:
                 positions_list.append(position)
+                if not position['weight']:
+                    has_weight = False
 
     sum_number = sum([pos['number'] for pos in positions_list])
-    sum_weight = sum([pos['weight'] for pos in positions_list])
+    if has_weight:
+        sum_weight = sum([pos['weight'] for pos in positions_list])
+    else:
+        sum_weight = ''
     sum_summ = sum([pos['summ'] for pos in positions_list])
     if nds:
         sum_nds = sum([pos['summ_nds'] for pos in positions_list])
@@ -171,8 +181,10 @@ def write_new_table(work_sheet, returned_vcodes_dict, nds):
         sum_without_nds = sum_summ
 
     final_end_cord = find_cells_cord('Всего по накладной')[0]
-    change_sum(final_end_cord[0], sum_number, sum_weight, sum_summ, sum_without_nds, sum_nds)
-    change_sum(table_end_cord[-1][0], sum_number, sum_weight, sum_summ, sum_without_nds, sum_nds)
+    change_sum(final_end_cord[0], sum_number=sum_number, sum_weight=sum_weight, sum_summ=sum_summ, 
+                                    sum_without_nds=sum_without_nds, sum_nds=sum_nds)
+    change_sum(table_end_cord[-1][0], sum_number=sum_number, sum_weight=sum_weight, 
+                                    sum_summ=sum_summ, sum_without_nds=sum_without_nds, sum_nds=sum_nds)
 
     '''    r34 c4 vи содержит
     r34 c5 vДва  - кол-во строк (позиций)
@@ -189,10 +201,13 @@ def write_new_table(work_sheet, returned_vcodes_dict, nds):
     work_sheet.cell(row=footer_start_cord[0], column=6).value = num2text(len(positions_list)).capitalize()
     work_sheet.cell(row=footer_start_cord[0]+2, column=6).value = num2text(sum_number).capitalize()
     work_sheet.cell(row=footer_start_cord[0]+2, column=19).value = ''
-    work_sheet.cell(row=footer_start_cord[0]+4, column=19).value = decimal2text(decimal.Decimal(sum_weight),
+    if has_weight:
+        work_sheet.cell(row=footer_start_cord[0]+4, column=19).value = decimal2text(decimal.Decimal(sum_weight),
                                                                                 places=3,
                                                                                 int_units=int_units,
                                                                                 exp_units=exp_units).capitalize()
+    else:
+        work_sheet.cell(row=footer_start_cord[0]+4, column=19).value = ''
 
 
     '''
