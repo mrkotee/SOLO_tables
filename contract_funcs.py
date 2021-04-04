@@ -92,9 +92,9 @@ def create_contract(firm_type,
         date_today += 'г.'
     expire_date = '«{:02d}» {} {} года'.format(dt.now().day, mounth_names[dt.now().month], dt.now().year+3)
 
-    position_1 = morph_word(position, {'sing', 'accs'}, its_name=False)
+    position_1 = morph_word(position, {'sing', 'gent'}, its_name=False)
     if 'u_l' in word_path:
-        director = morph_word(name, {'sing', 'accs'}, its_name=True)
+        director = morph_word(name, {'sing', 'gent'}, its_name=True)
     else:
         director = name
     # document = morph_word(document)
