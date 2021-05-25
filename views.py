@@ -9,11 +9,14 @@ from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from openpyxl import load_workbook
 from .models import base_path, VCode, Consigment, Collection, Table_row, path_for_old_base
 from .funcs import get_for_table, get_all_from_base, read_xlxs, add_boxes_to_vcodes, read_abc_xlxs
-from .solo_settings import xlxs_filepath, xlxs_abc_filepath, docs_temp_dir
+from .solo_settings import xlxs_filepath, xlxs_abc_filepath, docs_temp_dir, sng_base_path
 from .celery_tasks import update_base, del_return_docs_temp
 from .contract_funcs import create_contract
 from .return_doc_funcs import get_doc_of_return
 from .return_doc_funcs import read_xlxs as read_return_doc_xlxs
+from .sng_funcs import read_xlxs as read_sng_xlxs
+from .sng_funcs import add_names_to_base, change_names_xlxs
+from .sng_models import Clients_row, Client
 
 
 
@@ -314,3 +317,68 @@ def return_docs(request):
         return render(request, 'return_docs.html', {
                                         'file_receved': file_receved,
                                         })
+
+
+
+def change_names(request):
+
+    if request.method == 'GET':
+        engine = create_engine('sqlite:///%s' % sng_base_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        clients_rows = [Clients_row(cl.id, cl.name) for cl in session.query(Client).all()]
+
+        session.close()
+        return render(request, 'change_names.html', {'clients_rows': clients_rows}
+                                        )
+    elif request.method == 'POST':
+        file = request.FILES['file']
+        u_file = file.read()
+
+        add_to_base = request.POST.get('add_new')
+        client = request.POST.get('client')
+        client_new = request.POST.get('client_new')
+
+        if client == 'Выберите клиента':
+            client = None
+        if client_new:
+            client = client_new
+
+
+        temp_filepath = docs_temp_dir + '{}.xlsx'.format(request.session.session_key)
+        with open(temp_filepath, 'wb') as f:
+            f.write(u_file)
+
+
+        engine = create_engine('sqlite:///%s' % sng_base_path, echo=False)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        if add_to_base or not client:
+            data = read_sng_xlxs(temp_filepath) 
+            if client:
+                add_names_to_base(session, data, client) 
+            else:
+                add_names_to_base(session, data) 
+
+            clients_rows = [Clients_row(cl.id, cl.name) for cl in session.query(Client).all()]
+            session.close()
+
+            return render(request, 'change_names.html', {'clients_rows': clients_rows}
+                                        )
+
+        else:
+            filename = 'книга1.xlsx'
+            save_to = docs_temp_dir + filename
+
+            change_names_xlxs(session, temp_filepath, save_to, client)
+
+            del_return_docs_temp.delay(temp_filepath)
+            del_return_docs_temp.delay(save_to)
+
+
+            session.close()
+
+            return redirect('/solo/r_docs/%s' % filename)
+
