@@ -11,7 +11,7 @@ from .models import base_path, VCode, Consigment, Collection, Table_row, path_fo
 from .funcs import get_for_table, get_all_from_base, read_xlxs, add_boxes_to_vcodes, read_abc_xlxs
 from .solo_settings import xlxs_filepath, xlxs_abc_filepath, docs_temp_dir, sng_base_path
 from .celery_tasks import update_base, del_return_docs_temp
-from .contract_funcs import create_contract
+from .contract_funcs import create_contract, create_addition_contract
 from .return_doc_funcs import get_doc_of_return
 from .return_doc_funcs import read_xlxs as read_return_doc_xlxs
 from .sng_funcs import read_xlxs as read_sng_xlxs
@@ -202,11 +202,23 @@ def contract(request):
         corr_account = request.POST.get('corr_account')
         bank_bik = request.POST.get('bank_bik')
         bank_name = request.POST.get('bank_name')
+        form_type = request.POST.get('form_type')
 
         if director:
             name = director
             
-        contract_filename, contract_filepath = create_contract(firm_type,
+        if 'соглашение' in form_type:
+            contract_filename, contract_filepath = create_addition_contract(
+                firm_type,
+                position,
+                firm_name,
+                name,
+                document,
+                ogrnip,
+                gender,)
+        
+        else:
+            contract_filename, contract_filepath = create_contract(firm_type,
                         second_firm, 
                         position,
                         firm_name,
@@ -226,6 +238,8 @@ def contract(request):
                         pers_id_series,
                         pers_id_number,
                         pers_id_gover)
+
+
 
         return redirect('/solo/contracts/%s' % contract_filename)
         # response = HttpResponse(FileResponse(open(contract_filepath, 'rb')), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
