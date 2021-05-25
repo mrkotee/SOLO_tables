@@ -58,6 +58,8 @@ def change_cap(work_sheet, new_doc_id=0, new_doc_date=None):
     work_sheet.cell(row=3, column=2).value, work_sheet.cell(row=12, column=4).value = second_firm_name, second_firm_name
     # замена второй фирмы на первую
     work_sheet.cell(row=8, column=4).value, work_sheet.cell(row=14, column=4).value = first_firm_name, first_firm_name
+    # удаление основания
+    work_sheet.cell(row=16, column=4).value = 'Возврат'
 
     if new_doc_id:
         work_sheet.cell(row=19, column=13).value = new_doc_id
