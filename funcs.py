@@ -5,15 +5,21 @@ from sqlalchemy.exc import IntegrityError, InvalidRequestError
 try:
     from .models import VCode, Consigment, Collection, base_path, Table_row, \
     VCodeName, Collection_Factory, Factory
-    from .solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections
+    from .solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections, xlxs_filepath
+    from .m_settings import sss, dsd, msk, lsk, mail_list
 except:
     from models import VCode, Consigment, Collection, base_path, Table_row, \
     VCodeName, Collection_Factory, Factory
-    from solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections
+    from solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections, xlxs_filepath
+    from m_settings import sss, dsd, msk, lsk, mail_list
 
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
+from openpyxl.styles import Border, Side, PatternFill, Font, GradientFill, Alignment, NamedStyle
+from openpyxl.utils import get_column_letter
 import random, string, time
-import os
+import os, base64
+from exchangelib import Credentials, Account, Configuration, DELEGATE, Message, Mailbox, \
+  FileAttachment, HTMLBody
 
 
 
@@ -624,3 +630,58 @@ def separate_by_factories(dir_path, session, names_session):
     row_list = get_vcodes_list("excl")
     create_xlsx_table("RC VY Ferre", row_list)
 
+
+def send_mails(dir_path, lg, ps, sv, mac, mail_list):
+    # dsd = base64.b64decode(dsd).decode()
+    # sss = base64.b64decode(sss).decode()
+    credentials = Credentials(lg, ps)
+
+    # lsk = base64.b64decode(lsk).decode()
+    # msk = base64.b64decode(msk).decode()
+    config = Configuration(server=sv, credentials=credentials)
+    account = Account(primary_smtp_address=mac, config=config,
+                      autodiscover=False, access_type=DELEGATE)
+    m1 = Message(
+        account=account,
+        subject='Наличие',
+        body='',
+        to_recipients=mail_list,
+    )
+    m2 = Message(
+        account=account,
+        subject='Наличие с наименованиями',
+        body='',
+        to_recipients=mail_list,
+    )
+    m3 = Message(
+        account=account,
+        subject='Наличие со всеми артикулами',
+        body='',
+        to_recipients=mail_list,
+    )
+
+    for filename in os.listdir(dir_path):
+        if 'отсуствующими' in filename:
+            m3.attach(FileAttachment(
+                name=filename,
+                content=open(dir_path + filename, 'rb').read(),
+            ))
+        elif 'наименованиями' in filename:
+            m2.attach(FileAttachment(
+                name=filename,
+                content=open(dir_path + filename, 'rb').read(),
+            ))
+        else:
+            m1.attach(FileAttachment(
+                name=filename,
+                content=open(dir_path + filename, 'rb').read(),
+            ))
+
+    m1.attach(FileAttachment(
+        name='Наличие.xlsx',
+        content=open(xlxs_filepath, 'rb').read(),
+    ))
+
+    m1.send()
+    m2.send()
+    m3.send()
