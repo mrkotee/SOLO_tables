@@ -252,7 +252,8 @@ def read_abc_xlxs(filepath):
         name = row[1].value
         collection = row[2].value
         box = row[3].value
-        xlxs_rows.append((vcode, name, collection, box))
+        factory = row[8].value
+        xlxs_rows.append((vcode, name, collection, box, factory))
     wb.close()
     return xlxs_rows
 

@@ -8,9 +8,9 @@ from datetime import datetime as dt
 import os
 
 try:
-    from .solo_settings import solo_path, base_path
+    from .solo_settings import solo_path, base_path, name_base_path
 except:
-    from solo_settings import solo_path, base_path
+    from solo_settings import solo_path, base_path, name_base_path
 
 
 
@@ -100,3 +100,57 @@ class Table_row:
         self.collection = ''
         self.comment = ''
         
+
+Name_Base = declarative_base()
+
+
+class VCodeName(Name_Base):
+    __tablename__ = "names_vendor_codes"
+
+    id = Column(Integer, primary_key=True)
+    code = Column(String, unique=True)
+    collection_id = Column(Integer, ForeignKey("collections_factory.id"))
+    name = Column(String)
+
+    def __init__(self, code, collection_id=int(), name=''):
+        self.code = code
+        if collection_id:
+            self.collection_id = collection_id
+        if name:
+            self.name = name
+
+
+class Collection_Factory(Name_Base):
+    __tablename__ = "collections_factory"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True)
+    boxes = Column(Integer)
+    vcodes = relationship("VCodeName", backref='collection')
+    factory_id = Column(Integer, ForeignKey("factories.id"))
+
+    def __init__(self, name, boxes=1, factory_id=int()):
+        self.name = name
+        if boxes:
+            self.boxes = boxes
+
+        if factory_id:
+            self.factory_id = factory_id
+
+
+class Factory(Name_Base):
+    __tablename__ = "factories"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True)
+    collections = relationship("Collection_Factory", backref='factory')
+
+    def __init__(self, name):
+        self.name = name
+        
+
+
+if not os.path.exists(name_base_path):
+    engine = create_engine('sqlite:///%s' % name_base_path, echo=False)
+    Name_Base.metadata.create_all(bind=engine)
+

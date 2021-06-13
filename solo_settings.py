@@ -9,6 +9,8 @@ xlxs_abc_filepath = solo_path + r'abc.xlsx'
 
 base_path = solo_path + r'base.bd'
 
+name_base_path = solo_path + r'name_base.bd'
+
 statistics_base_path = solo_path + r'statistics_base.bd'
 
 sng_base_path = solo_path + r'sng_base.bd'
