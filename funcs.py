@@ -5,11 +5,11 @@ from sqlalchemy.exc import IntegrityError, InvalidRequestError
 try:
     from .models import VCode, Consigment, Collection, base_path, Table_row, \
     VCodeName, Collection_Factory, Factory
-    from .solo_settings import replace_dict, name_base_path
+    from .solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections
 except:
     from models import VCode, Consigment, Collection, base_path, Table_row, \
     VCodeName, Collection_Factory, Factory
-    from solo_settings import replace_dict, name_base_path
+    from solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections
 
 from openpyxl import load_workbook
 import random, string, time
@@ -480,4 +480,147 @@ def add_names_to_vcodes(xlxs_rows, session):
         response.append("no changes")
         
     return response
+
+
+def separate_by_factories(dir_path, session, names_session):
+
+    def get_vcodes_list(factory_name):
+        result = []
+        for collection in _factories_collection_pair[factory_name]:
+            for vcode in collection.vcodes:
+                try:
+                    vcode_name = names_session.query(VCodeName).filter(VCodeName.code == vcode.code).first().name
+                except AttributeError:
+                    print(vcode.code)
+                    vcode_name = ''
+                if vcode.consigments:
+                    for consig in vcode.consigments:
+                        result.append((vcode.code, vcode_name, consig.name, consig.amount))
+                else:
+                    result.append((vcode.code, vcode_name, 'нет в наличии', 0))
+        return result
+    
+    def create_xlsx_table(filename, data_list):
+
+        title_style = NamedStyle(name="title")
+        title_style.fill = PatternFill("solid", fgColor="00F4ECC5")
+        title_style.font = Font(name='Arial', sz=10.0)
+
+        default_style = NamedStyle(name="default")
+        default_style.font = Font(name='Arial', sz=8.0)
+
+        border = Side(style='thin', color='00CCC085')
+        borders = Border(left=border, top=border, right=border, bottom=border)
+
+        title_style.border = borders
+        default_style.border = borders
+
+        def create_title(ws, titles):
+            if len(titles) > 3:
+                ws.column_dimensions[get_column_letter(2)].width = 30
+            for i, title in enumerate(titles, 1):
+                ws.cell(1,i).value = title
+                ws.cell(1,i).style = title_style
+
+        def fill_row(ws, row_id, row_data, full=False):
+            for i, cell in enumerate(row_data[:5], 1):
+                if not full:
+                    if i == 2:
+                        continue
+                    elif i > 2:
+                        i = i-1
+                ws.cell(row_id, i).value = cell
+                ws.cell(row_id, i).style = default_style
+
+
+        wb1 = Workbook()
+        ws1 = wb1.active
+        ws1.title = "Наличие"
+        wb2 = Workbook()
+        ws2 = wb2.active
+        ws2.title = "Наличие"
+        wb3 = Workbook()
+        ws3 = wb3.active
+        ws3.title = "Наличие"
+
+        create_title(ws1, ("Артикул", "Партия", "Доступно"))
+        create_title(ws2, ("Артикул", "Партия", "Доступно"))
+        create_title(ws3, ("Артикул", "Наименование", "Партия", "Доступно"))
+
+        alt_i = 2
+        for i, row in enumerate(data_list, 2):
+            fill_row(ws2, i, row)
+            if row[3]:
+                fill_row(ws1, alt_i, row)
+                fill_row(ws3, alt_i, row, full=True)
+                alt_i += 1
+
+        wb1.save(dir_path + "%s.xlsx" % filename)
+        wb2.save(dir_path + "%s с отсуствующими.xlsx" % filename)
+        wb3.save(dir_path + "%s с наименованиями.xlsx" % filename)
+
+
+    # codes = session.query(VCode).all()
+    collections = session.query(Collection).all()
+
+    codes_name = names_session.query(VCodeName).all()
+    # _collections = names_session.query(Collection_Factory).all()
+    factories = names_session.query(Factory).all()
+
+    _factories_collection_pair = {'excl': []}
+    
+    for factory in factories:
+        _factories_collection_pair[factory.name] = []
+        for coll in collections.copy():
+            for f_coll in factory.collections:
+                if coll.name == f_coll.name:
+                    _excc = False
+                    for _exception in exclusive_collections:
+                        if not coll.name:
+                            break
+                        if _exception.lower() in coll.name.lower():
+                            _excc = True
+                            break
+                    if _excc:
+                        _factories_collection_pair['excl'].append(coll)
+                    else:
+                        _factories_collection_pair[factory.name].append(coll)
+                    collections.remove(coll)
+
+    code_names_dict = {}
+    for code in codes_name:
+        code_names_dict[code.code] = code.name
+
+    row_list = get_vcodes_list("DID")
+    create_xlsx_table("DID", row_list)
+
+    row_list = get_vcodes_list("G'BOYA")
+    create_xlsx_table("G'BOYA", row_list)
+
+    row_list_ = get_vcodes_list("YIEN")
+    create_xlsx_table("YIEN", row_list)
+
+    row_list += row_list_
+    create_xlsx_table("Китай", row_list)
+
+    row_list = get_vcodes_list("Wiganford")
+    create_xlsx_table("Wiganford", row_list)
+
+    row_list = get_vcodes_list("Rasch")
+    create_xlsx_table("Rasch", row_list)
+
+    row_list = get_vcodes_list("Partner")
+    create_xlsx_table("Фотообои", row_list)
+
+    row_list = get_vcodes_list("Emiliana Parati")
+    row_list += get_vcodes_list("Limonta")
+    row_list += get_vcodes_list("Parato")
+    create_xlsx_table("Италия", row_list)
+
+    row_list = get_vcodes_list("Индустрия")
+    row_list += get_vcodes_list("Элизиум")
+    create_xlsx_table("Россия", row_list)
+
+    row_list = get_vcodes_list("excl")
+    create_xlsx_table("RC VY Ferre", row_list)
 

@@ -9,14 +9,14 @@ try:
     from .models import base_path, VCode, Consigment, Collection, Table_row, \
     path_for_old_base, name_base_path
     from .funcs import get_for_table, get_all_from_base, read_xlxs, \
-    add_boxes_to_vcodes, read_abc_xlxs, add_names_to_vcodes
+    add_boxes_to_vcodes, read_abc_xlxs, add_names_to_vcodes, separate_by_factories
     from .solo_settings import xlxs_filepath, xlxs_abc_filepath
 except:
     from models import base_path, VCode, Consigment, Collection, Table_row, \
     path_for_old_base, name_base_path
     from funcs import get_for_table, get_all_from_base, read_xlxs, \
-    add_boxes_to_vcodes, read_abc_xlxs, add_names_to_vcodes
-    from solo_settings import xlxs_filepath, xlxs_abc_filepath
+    add_boxes_to_vcodes, read_abc_xlxs, add_names_to_vcodes, separate_by_factories
+    from solo_settings import xlxs_filepath, xlxs_abc_filepath, sep_files_dir
 
 
 
@@ -34,7 +34,6 @@ def update_base():
 
     changed_positions, rows_to_check, checked_rows, needed_collections = get_all_from_base(xlxs_rows, session)
 
-    session.close()
 
     with open('update_result.txt', 'w') as f:
         for cllctn in needed_collections:
@@ -45,6 +44,15 @@ def update_base():
 
     new_path = path_for_old_base(update_time=True)
     os.system(r'cp {} {}'.format(base_path, new_path))
+
+    n_engine = create_engine('sqlite:///%s' % name_base_path, echo=False, poolclass=QueuePool)
+    n_Session = sessionmaker(bind=n_engine)
+    n_session = n_Session()
+
+    separate_by_factories(sep_files_dir, session, n_session)
+
+    session.close()
+    n_session.close()
 
 
 @app.task()

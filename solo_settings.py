@@ -17,6 +17,10 @@ sng_base_path = solo_path + r'sng_base.bd'
 
 docs_temp_dir = solo_path + r'docs_temp/'
 
+sep_files_dir = solo_path + r'separated_by_factories/'
+
+exclusive_collections = ['roberto', 'valentin', 'ferre']
+
 
 replace_dict = {
     'Е': 'E',
