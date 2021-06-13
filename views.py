@@ -131,9 +131,10 @@ def update_abc(request, file_receved=False):
         with open(xlxs_abc_filepath, 'wb') as f:
             f.write(u_file)
 
-        engine = create_engine('sqlite:///%s' % base_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
+
+        update_base.delay()
+        changed_positions = ["Update will be done soon"]
+
 
         try:
             xlxs_rows = read_abc_xlxs(xlxs_abc_filepath)
@@ -142,18 +143,6 @@ def update_abc(request, file_receved=False):
                                         'label': label,
                                         'wrong_file': True,
                                         })
-
-        changed_positions = add_boxes_to_vcodes(xlxs_rows, session)
-
-        session.close()
-
-        with open('update_abc_result.txt', 'w') as f:
-            for change in changed_positions:
-                f.write(change + "\n")
-
-
-        new_path = path_for_old_base(update_time=True)
-        os.system(r'cp {} {}'.format(base_path, new_path))
 
 
         file_receved = True

@@ -3,15 +3,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 try:
-    from .models import VCode, Consigment, Collection, base_path, Table_row
-    from .solo_settings import replace_dict
+    from .models import VCode, Consigment, Collection, base_path, Table_row, \
+    VCodeName, Collection_Factory, Factory
+    from .solo_settings import replace_dict, name_base_path
 except:
-    from models import VCode, Consigment, Collection, base_path, Table_row
-    from solo_settings import replace_dict
+    from models import VCode, Consigment, Collection, base_path, Table_row, \
+    VCodeName, Collection_Factory, Factory
+    from solo_settings import replace_dict, name_base_path
 
 from openpyxl import load_workbook
 import random, string, time
 import os
+
 
 
 def find_code(vcode, session):
@@ -399,3 +402,82 @@ def add_boxes_to_vcodes(xlxs_rows, session):
         response.append("no changes")
         
     return response
+
+
+def add_names_to_vcodes(xlxs_rows, session):
+    """Выгрузка из ABC""" # to names base
+
+    def find_element(name, _list):
+        for _coll in _list:
+            if _coll.name == name:
+                return _coll
+        return None
+
+    codes = session.query(VCodeName).all()
+    collections = session.query(Collection_Factory).all()
+    factories = session.query(Factory).all()
+
+    response = []
+    need_commit = False
+    for i, row in enumerate(xlxs_rows):
+        vcode = str(row[0])
+        name = row[1]
+        collection = row[2]
+        box = row[3]
+        factory = row[4]
+
+        factory_in_base = find_element(factory, factories)
+
+        if not factory_in_base:
+            response.append("added factory %s" % factory)
+            session.add(Factory(factory))
+            session.commit()
+            factory_in_base = session.query(Factory).filter(Factory.name == factory).first()
+            factories.append(factory_in_base)
+
+        collection_in_base = find_element(collection, collections)
+
+        if collection_in_base and collection_in_base.id != 125:
+            if box and box != collection_in_base.boxes:
+                collection = collection + "_" + str(box)
+                collection_in_base = find_element(collection, collections)
+
+        if not collection_in_base:
+            response.append("added collection %s" % collection)
+            session.add(Collection_Factory(collection, box, factory_id=factory_in_base.id))
+            session.commit()
+            collection_in_base = session.query(Collection_Factory).filter(Collection_Factory.name == collection).first()
+            collections.append(collection_in_base)
+
+        code_in_base = None
+        for _code in codes:
+            if _code.code == vcode:
+                code_in_base = _code
+                if not code_in_base.collection_id:
+                    code_in_base.collection_id = collection_in_base.id
+                    need_commit = True
+                    response.append("added collection to %s" % vcode)
+                elif int(code_in_base.collection_id) != collection_in_base.id:
+                    code_in_base.collection_id = collection_in_base.id
+                    need_commit = True
+                    response.append("changed collection to %s" % vcode)
+                if not code_in_base.name:
+                    code_in_base.name = name
+                break
+        if not code_in_base:
+            # response.append("added vcode %s" % vcode)
+            session.add(VCodeName(vcode, collection_in_base.id, name=name))
+            need_commit = True
+
+        if not i % 100 and need_commit:
+            session.commit()
+            need_commit = False
+
+    if need_commit:
+        session.commit()
+
+    if not response:
+        response.append("no changes")
+        
+    return response
+
