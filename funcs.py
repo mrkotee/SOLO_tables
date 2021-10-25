@@ -305,7 +305,11 @@ def get_all_from_base(xlxs_rows, session):
         for _consig in code_in_base.consigments:
             if _consig.name == consig:
                 consig_in_base = _consig
-                consigs.remove(_consig)
+                try:
+                    consigs.remove(_consig)
+                except Exception as e:
+                    print(_consig, vcode, e)
+                    # raise Exception
                 break     
         if not consig_in_base:
             _consig = Consigment(name=consig, vcode=code_in_base.id, amount=amount)
@@ -604,7 +608,7 @@ def separate_by_factories(dir_path, session, names_session):
     create_xlsx_table("G'BOYA", row_list)
 
     row_list_ = get_vcodes_list("YIEN")
-    create_xlsx_table("YIEN", row_list)
+    create_xlsx_table("YIEN", row_list_)
 
     row_list += row_list_
     create_xlsx_table("Китай", row_list)
@@ -612,8 +616,8 @@ def separate_by_factories(dir_path, session, names_session):
     row_list = get_vcodes_list("Wiganford")
     create_xlsx_table("Wiganford", row_list)
 
-    row_list = get_vcodes_list("Rasch")
-    create_xlsx_table("Rasch", row_list)
+    # row_list = get_vcodes_list("Rasch")
+    # create_xlsx_table("Rasch", row_list)
 
     row_list = get_vcodes_list("Partner")
     create_xlsx_table("Фотообои", row_list)
@@ -630,8 +634,64 @@ def separate_by_factories(dir_path, session, names_session):
     row_list = get_vcodes_list("excl")
     create_xlsx_table("RC VY Ferre", row_list)
 
+def create_xlsx_without_consigments(dir_path, session):
+    filename = 'Наличие без партий'
+    
+    title_style = NamedStyle(name="title")
+    title_style.fill = PatternFill("solid", fgColor="00F4ECC5")
+    title_style.font = Font(name='Arial', sz=10.0)
 
-def send_mails(dir_path, lg, ps, sv, mac, mail_list):
+    default_style = NamedStyle(name="default")
+    default_style.font = Font(name='Arial', sz=8.0)
+
+    border = Side(style='thin', color='00CCC085')
+    borders = Border(left=border, top=border, right=border, bottom=border)
+
+    title_style.border = borders
+    default_style.border = borders
+
+    def create_title(ws, titles):
+
+        ws.cell(2,1).value = "Остатки и доступность товара"
+        ws.cell(2,1).font = Font(name='Arial', sz=18.0, bold=True)
+        ws.cell(5,1).value = "Склад"
+        ws.cell(5,1).style = title_style
+        ws.cell(5,2).value = "Сейчас"
+        ws.cell(5,2).style = title_style
+        if len(titles) > 3:
+            ws.column_dimensions[get_column_letter(2)].width = 30
+        for i, title in enumerate(titles, 1):
+            ws.cell(6,i).value = title
+            ws.cell(6,i).style = title_style
+
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Наличие"
+    create_title(ws, ("Артикул", "Доступно"))
+
+    vcodes = session.query(VCode).all()
+    data_list = []
+    for vcode in vcodes:
+        if vcode.consigments:
+            amount = 0
+            for consig in vcode.consigments:
+                amount += consig.amount
+            data_list.append((vcode.code, amount))
+        # else:
+        #     data_list.append((vcode.code, 0))
+
+    for r, row_data in enumerate(data_list, 7):  # 7 - table start row
+        for c, cell in enumerate(row_data, 1):
+            ws.cell(r, c).value = cell
+            ws.cell(r, c).style = default_style
+
+
+    wb.save(dir_path + "%s.xlsx" % filename)
+    return True
+
+
+def send_mails(dir_path, lg, ps, sv, mac, mail_list, mary=False):
     # dsd = base64.b64decode(dsd).decode()
     # sss = base64.b64decode(sss).decode()
     credentials = Credentials(lg, ps)
@@ -651,13 +711,13 @@ def send_mails(dir_path, lg, ps, sv, mac, mail_list):
         account=account,
         subject='Наличие с наименованиями',
         body='',
-        to_recipients=mail_list,
+        to_recipients=[mail_list[0]],
     )
     m3 = Message(
         account=account,
         subject='Наличие со всеми артикулами',
         body='',
-        to_recipients=mail_list,
+        to_recipients=[mail_list[0]],
     )
 
     for filename in os.listdir(dir_path):
@@ -676,12 +736,75 @@ def send_mails(dir_path, lg, ps, sv, mac, mail_list):
                 name=filename,
                 content=open(dir_path + filename, 'rb').read(),
             ))
-
-    m1.attach(FileAttachment(
-        name='Наличие.xlsx',
-        content=open(xlxs_filepath, 'rb').read(),
-    ))
+    if not mary:
+        m1.attach(FileAttachment(
+            name='Наличие.xlsx',
+            content=open(xlxs_filepath, 'rb').read(),
+        ))
+    # m1.attach(FileAttachment(
+    #     name='Наличие без партий.xlsx',
+    #     content=open(dir_path + 'Наличие без партий.xlsx', 'rb').read(),
+    # ))
 
     m1.send()
-    m2.send()
-    m3.send()
+    if not mary:
+        m2.send()
+        m3.send()
+
+
+def create_amounts_to_mary(dir_path, session):
+
+    filename = 'Наличие'
+    
+    title_style = NamedStyle(name="title")
+    title_style.fill = PatternFill("solid", fgColor="00F4ECC5")
+    title_style.font = Font(name='Arial', sz=10.0)
+
+    default_style = NamedStyle(name="default")
+    default_style.font = Font(name='Arial', sz=8.0)
+
+    border = Side(style='thin', color='00CCC085')
+    borders = Border(left=border, top=border, right=border, bottom=border)
+
+    title_style.border = borders
+    default_style.border = borders
+
+    def create_title(ws, titles):
+
+        ws.cell(2,1).value = "Остатки и доступность товара"
+        ws.cell(2,1).font = Font(name='Arial', sz=18.0, bold=True)
+        ws.cell(5,1).value = "Склад"
+        ws.cell(5,1).style = title_style
+        ws.cell(5,2).value = "Характеристика"
+        ws.cell(5,2).style = title_style
+        ws.cell(5,3).value = "Сейчас"
+        ws.cell(5,3).style = title_style
+        if len(titles) > 3:
+            ws.column_dimensions[get_column_letter(2)].width = 30
+        for i, title in enumerate(titles, 1):
+            ws.cell(6,i).value = title
+            ws.cell(6,i).style = title_style
+
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Наличие"
+    create_title(ws, ("Артикул", " ", "Доступно"))
+
+    vcodes = session.query(VCode).all()
+    data_list = []
+    for vcode in vcodes:
+        if vcode.consigments:
+            for consig in vcode.consigments:
+                data_list.append((vcode.code, consig.name, consig.amount))
+        # else:
+        #     data_list.append((vcode.code, 0))
+
+    for r, row_data in enumerate(data_list, 7):  # 7 - table start row
+        for c, cell in enumerate(row_data, 1):
+            ws.cell(r, c).value = cell
+            ws.cell(r, c).style = default_style
+
+
+    wb.save(dir_path + "%s.xlsx" % filename)
+    return True

@@ -12,18 +12,18 @@ try:
     from .models import base_path, VCode, Consigment, Collection, Table_row, \
     path_for_old_base, name_base_path
     from .funcs import get_for_table, get_all_from_base, read_xlxs, \
-    add_boxes_to_vcodes, read_abc_xlxs, add_names_to_vcodes, separate_by_factories
+    add_boxes_to_vcodes, read_abc_xlxs, add_names_to_vcodes, separate_by_factories, create_xlsx_without_consigments
     from .solo_settings import xlxs_filepath, xlxs_abc_filepath, sep_files_dir
-    from .funcs import send_mails
-    from .m_settings import sss, dsd, msk, lsk, mail_list
+    from .funcs import send_mails, create_amounts_to_mary
+    from .m_settings import sss, dsd, msk, lsk, mail_list, marys_mail
 except:
     from models import base_path, VCode, Consigment, Collection, Table_row, \
     path_for_old_base, name_base_path
     from funcs import get_for_table, get_all_from_base, read_xlxs, \
-    add_boxes_to_vcodes, read_abc_xlxs, add_names_to_vcodes, separate_by_factories
+    add_boxes_to_vcodes, read_abc_xlxs, add_names_to_vcodes, separate_by_factories, create_xlsx_without_consigments
     from solo_settings import xlxs_filepath, xlxs_abc_filepath, sep_files_dir
-    from funcs import send_mails
-    from m_settings import sss, dsd, msk, lsk, mail_list
+    from funcs import send_mails, create_amounts_to_mary
+    from m_settings import sss, dsd, msk, lsk, mail_list, marys_mail
 
 
 
@@ -60,9 +60,6 @@ def update_base():
 
     separate_by_factories(sep_files_dir, session, n_session)
 
-    session.close()
-    n_session.close()
-
     # dsd = base64.b64decode(dsd).decode()
     # sss = base64.b64decode(sss).decode()
     # lsk = base64.b64decode(lsk).decode()
@@ -74,6 +71,29 @@ def update_base():
     else:
         send_mails(sep_files_dir, base64.b64decode(dsd).decode(), base64.b64decode(sss).decode(), 
             base64.b64decode(msk).decode(), base64.b64decode(lsk).decode(), [mail_list[0]])
+
+    ############## mary ###########
+    for f in os.listdir(sep_files_dir):
+        os.remove(os.path.join(sep_files_dir, f))
+
+    create_xlsx_without_consigments(sep_files_dir, session)
+    create_amounts_to_mary(sep_files_dir, session)
+
+
+    if dt.now().hour < 10 and dt.now().hour > 7:
+        send_mails(sep_files_dir, base64.b64decode(dsd).decode(), base64.b64decode(sss).decode(), 
+            base64.b64decode(msk).decode(), base64.b64decode(lsk).decode(), marys_mail, mary=True)
+    else:
+        send_mails(sep_files_dir, base64.b64decode(dsd).decode(), base64.b64decode(sss).decode(), 
+            base64.b64decode(msk).decode(), base64.b64decode(lsk).decode(), [mail_list[0]], mary=True)
+
+    ###############################
+    session.close()
+    n_session.close()
+    
+    for f in os.listdir(sep_files_dir):
+        os.remove(os.path.join(sep_files_dir, f))
+
 
 
 @app.task()
