@@ -2,6 +2,7 @@ import os
 from django.http import Http404, HttpResponse, FileResponse
 from django.shortcuts import render, redirect
 from django.core.files.storage import FileSystemStorage
+from datetime import datetime as dt
 import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -11,6 +12,7 @@ from .models import base_path, VCode, Consigment, Collection, Table_row, path_fo
 from .funcs import get_for_table, get_all_from_base, read_xlxs, add_boxes_to_vcodes, read_abc_xlxs
 from .solo_settings import xlxs_filepath, xlxs_abc_filepath, docs_temp_dir, sng_base_path, sep_files_dir
 from .celery_tasks import update_base, del_return_docs_temp
+from .celery_tasks import update_abc as cel_update_abc
 from .contract_funcs import create_contract, create_addition_contract
 from .return_doc_funcs import get_doc_of_return
 from .return_doc_funcs import read_xlxs as read_return_doc_xlxs
@@ -132,7 +134,7 @@ def update_abc(request, file_receved=False):
             f.write(u_file)
 
 
-        update_base.delay()
+        cel_update_abc.delay()
         changed_positions = ["Update will be done soon"]
 
 
@@ -167,7 +169,7 @@ def update_abc(request, file_receved=False):
 def contract(request):
 
     if request.method == 'GET':
-        return render(request, 'contract.html', {}
+        return render(request, 'contract.html', {'date_today': dt.strftime(dt.now().date(), "%Y-%m-%d")}
                                         )
     elif request.method == 'POST':
         firm_type = request.POST.get('firm_type')
@@ -191,12 +193,15 @@ def contract(request):
         corr_account = request.POST.get('corr_account')
         bank_bik = request.POST.get('bank_bik')
         bank_name = request.POST.get('bank_name')
+        contract_number = request.POST.get('contract_number')
+        date_contract = request.POST.get('date_contract')
         form_type = request.POST.get('form_type')
 
         if director:
             name = director
             
         if 'соглашение' in form_type:
+            _date_contract = dt.strptime(date_contract, "%Y-%m-%d")
             contract_filename, contract_filepath = create_addition_contract(
                 firm_type,
                 position,
@@ -204,7 +209,9 @@ def contract(request):
                 name,
                 document,
                 ogrnip,
-                gender,)
+                gender,
+                date_contract=_date_contract,
+                contract_number=contract_number,)
         
         else:
             contract_filename, contract_filepath = create_contract(firm_type,

@@ -64,12 +64,12 @@ def create_contract(
     if int(firm_type) == 2:
         filename += 'u_l_'
         firm_type = "Общество с ограниченной ответственностью"
-        result_filename_list[0] = 'ООО'
+        result_filename_list[0] = ''
         result_filename_list[1] = firm_name.title()
     else:
         filename += 'ip_'
         firm_type = "Индивидуальный предприниматель"
-        result_filename_list[0] = 'ИП'
+        result_filename_list[0] = ''
 
     if credit_limit:
         filename += 'otsrochka.docx'
@@ -175,6 +175,8 @@ def create_addition_contract(
     document,
     ogrnip,
     gender,
+    contract_number="",
+    date_contract=dt.now(),
     credit_limit=90,):
 
     morph = pymorphy2.MorphAnalyzer()
@@ -223,8 +225,7 @@ def create_addition_contract(
     firm_type = firm_type.capitalize()
     full_firm_name = firm_type + ' ' + firm_name
     date_today = '«{:02d}» {} {} '.format(dt.now().day, mounth_names[dt.now().month], dt.now().year)
-    if 'solo_decor' in word_path:
-        date_today += 'г.'
+    _date_contract = '{:02d}.{:02d}.{} '.format(date_contract.day, date_contract.month, date_contract.year)
     expire_date = '«{:02d}» {} {} года'.format(dt.now().day, mounth_names[dt.now().month], dt.now().year+3)
 
     position_1 = morph_word(position, {'sing', 'gent'}, its_name=False)
@@ -256,6 +257,9 @@ def create_addition_contract(
     else:
         gender = 'именуемый'
 
+    if not contract_number:
+        contract_number = '___________________'
+
     ############ work with word file ###############
 
 
@@ -263,6 +267,7 @@ def create_addition_contract(
 
     context = {
         'date_today': date_today,
+        'date_contract': _date_contract,
         'firm_name': firm_name,
         'director': director.title().rstrip(),
         'director_short': director_short.title(),
@@ -273,6 +278,7 @@ def create_addition_contract(
         'expire_date': expire_date,
         'ogrnip': ogrnip,
         'gender': gender,
+        'contract_number': contract_number,
 
     }
     doc.render(context)
