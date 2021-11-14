@@ -6,12 +6,10 @@ try:
     from .models import VCode, Consigment, Collection, base_path, Table_row, \
     VCodeName, Collection_Factory, Factory
     from .solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections, xlxs_filepath
-    from .m_settings import sss, dsd, msk, lsk, mail_list
 except:
     from models import VCode, Consigment, Collection, base_path, Table_row, \
     VCodeName, Collection_Factory, Factory
     from solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections, xlxs_filepath
-    from m_settings import sss, dsd, msk, lsk, mail_list
 
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import Border, Side, PatternFill, Font, GradientFill, Alignment, NamedStyle
@@ -20,6 +18,11 @@ import random, string, time
 import os, base64
 from exchangelib import Credentials, Account, Configuration, DELEGATE, Message, Mailbox, \
   FileAttachment, HTMLBody
+import smtplib
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import COMMASPACE, formatdate
 
 
 
@@ -691,7 +694,7 @@ def create_xlsx_without_consigments(dir_path, session):
     return True
 
 
-def send_mails(dir_path, lg, ps, sv, mac, mail_list, mary=False):
+def send_mails_exchange(dir_path, lg, ps, sv, mac, mail_list, mary=False):
     # dsd = base64.b64decode(dsd).decode()
     # sss = base64.b64decode(sss).decode()
     credentials = Credentials(lg, ps)
@@ -808,3 +811,60 @@ def create_amounts_to_mary(dir_path, session):
 
     wb.save(dir_path + "%s.xlsx" % filename)
     return True
+
+
+def send_mails_smtp(dir_path, send_from, server, mail_list, mary=False, text=''):
+
+    def send_mail(send_from, send_to, subject, text, files=None, server="127.0.0.1"):
+        assert isinstance(send_to, list)
+
+        msg = MIMEMultipart()
+        msg['From'] = send_from
+        msg['To'] = COMMASPACE.join(send_to)
+        msg['Date'] = formatdate(localtime=True)
+        msg['Subject'] = subject
+
+        msg.attach(MIMEText(text))
+
+        if type(files) == dict:
+            for fn in files:
+                with open(files[fn], "rb") as file:
+                    part = MIMEApplication(
+                        file.read(),
+                        Name=fn
+                    )
+                # After the file is closed
+                part['Content-Disposition'] = 'attachment; filename="%s"' % fn
+                msg.attach(part)
+        else:
+            for f in files or []:
+                with open(f, "rb") as file:
+                    part = MIMEApplication(
+                        file.read(),
+                        Name=os.path.basename(f)
+                    )
+                # After the file is closed
+                part['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(f)
+                msg.attach(part)
+
+
+        smtp = smtplib.SMTP(server)
+        smtp.sendmail(send_from, send_to, msg.as_string())
+        smtp.close()
+
+
+    filelists = [{}, {}, {}]
+    for filename in os.listdir(dir_path):
+        if 'отсуствующими' in filename:
+            filelists[0][filename] = os.path.join(dir_path, filename)
+        elif 'наименованиями' in filename:
+            filelists[1][filename] = os.path.join(dir_path, filename)
+        else:
+            filelists[2][filename] = os.path.join(dir_path, filename)
+    if not mary:
+        filelists[0]['Наличие.xlsx'] = xlxs_filepath
+
+    send_mail(send_from, mail_list, 'Наличие', text, filelists[0], server)
+    if not mary:
+        send_mail(send_from, mail_list, 'Наличие с наименованиями', text, filelists[1], server)
+        send_mail(send_from, mail_list, 'Наличие со всеми артикулами', text, filelists[2], server)
