@@ -162,6 +162,7 @@ def create_contract(
         result_filename_list[1] = director_short
 
     result_filename = ' '.join(result_filename_list) + '.docx'
+    result_filename = result_filename.strip()
     save_path = os.path.join(solo_path, 'contracts', result_filename)
     doc.save(save_path)
     return result_filename, save_path

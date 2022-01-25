@@ -63,7 +63,7 @@ def update_base():
     separate_by_factories(sep_files_dir, session, n_session)
 
 
-    if dt.now().hour < 10 and dt.now().hour > 7:
+    if dt.now().hour < 11 and dt.now().hour > 7:
         send_mails(sep_files_dir, smtp_from, smtp_server, mail_list, text=mail_text)
     else:
         send_mails(sep_files_dir, smtp_from, smtp_server, [mail_list[0]], text=mail_text)
@@ -76,7 +76,7 @@ def update_base():
     create_amounts_to_mary(sep_files_dir, session)
 
 
-    if dt.now().hour < 10 and dt.now().hour > 7:
+    if dt.now().hour < 11 and dt.now().hour > 7:
         send_mails(sep_files_dir, smtp_from, smtp_server, marys_mail, mary=True, text=mail_text)
     else:
         send_mails(sep_files_dir, smtp_from, smtp_server, [mail_list[0]], mary=True, text=mail_text)
