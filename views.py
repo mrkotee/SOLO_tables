@@ -16,16 +16,19 @@ from .return_doc_funcs import get_doc_of_return
 from .return_doc_funcs import read_xlxs as read_return_doc_xlxs
 
 
-
 def main(request, data_receved=False):
     last_update_time = 'Последнее обновление: '
-    with open("last_update_time.txt", "r") as f:
-        last_update_time += f.read()
+    try:
+        with open("last_update_time.txt", "r") as f:
+            last_update_time += f.read()
+    except FileNotFoundError:
+        last_update_time += "Еще не обновляли"
 
     return render(request, 'solo_table.html', {
-                                        'data_receved': data_receved,
-                                        'last_update_time': last_update_time}
-                                        )
+        'data_receved': data_receved,
+        'last_update_time': last_update_time}
+                  )
+
 
 def table(request):
     boxes_num = 0
@@ -55,30 +58,29 @@ def table(request):
     session = Session()
     if boxes_num:
         if uni_boxes_num:
-            table_rows = get_for_table(data_list, session, 
-                                        boxes_num, uni_boxes_num,
-                                        get_all_consigs)
+            table_rows = get_for_table(data_list, session,
+                                       boxes_num, uni_boxes_num,
+                                       get_all_consigs)
         else:
-            table_rows = get_for_table(data_list, session, 
-                                    boxes_num, get_all_consigs)
+            table_rows = get_for_table(data_list, session,
+                                       boxes_num, get_all_consigs)
     elif uni_boxes_num:
-        table_rows = get_for_table(data_list, session, 
-                                    get_all_consigs, 
-                                    uni_boxes_num=uni_boxes_num)
+        table_rows = get_for_table(data_list, session,
+                                   get_all_consigs,
+                                   uni_boxes_num=uni_boxes_num)
     else:
         table_rows = get_for_table(data_list, session, get_all_consigs)
 
     session.close()
-    
-    if request.method == 'GET':
 
+    if request.method == 'GET':
         return HttpResponse(json.dumps(table_rows[0].__dict__), content_type="application/json")
 
     if request.method == 'POST':
         # return redirect('index', message_receved=True) #, {'page': 'index', 'message_receved': True})
         return render(request, 'solo_table.html', {'data_receved': True,
-                                                'table_rows': table_rows,
-                                                })
+                                                   'table_rows': table_rows,
+                                                   })
 
 
 def update(request, file_receved=False):
@@ -88,33 +90,32 @@ def update(request, file_receved=False):
         with open(xlxs_filepath, 'wb') as f:
             f.write(u_file)
 
-
         try:
             xlxs_rows = read_xlxs(xlxs_filepath)
         except Exception as e:
             return render(request, 'solo_update.html', {
-                                        'wrong_file': True,
-                                        })
+                'wrong_file': True,
+            })
 
         update_base.delay()
         changed_positions = ["Update will be done soon"]
 
-
-
         file_receved = True
         return render(request, 'solo_update.html', {
-                                        'file_receved': file_receved,
-                                        'changed_positions': changed_positions,
-                                        })
+            'file_receved': file_receved,
+            'changed_positions': changed_positions,
+        })
 
-
-    with open('update_result.txt', 'r') as f:
-        changed_positions = f.readlines()
+    try:
+        with open('update_result.txt', 'r') as f:
+            changed_positions = f.readlines()
+    except FileNotFoundError:
+        changed_positions = ["Обновлений не было"]
 
     return render(request, 'solo_update.html', {
-                                        'file_receved': file_receved,
-                                        'changed_positions': changed_positions,
-                                        })
+        'file_receved': file_receved,
+        'changed_positions': changed_positions,
+    })
 
 
 def update_abc(request, file_receved=False):
@@ -134,9 +135,9 @@ def update_abc(request, file_receved=False):
             xlxs_rows = read_abc_xlxs(xlxs_abc_filepath)
         except Exception as e:
             return render(request, 'solo_update.html', {
-                                        'label': label,
-                                        'wrong_file': True,
-                                        })
+                'label': label,
+                'wrong_file': True,
+            })
 
         changed_positions = add_boxes_to_vcodes(xlxs_rows, session)
 
@@ -146,35 +147,34 @@ def update_abc(request, file_receved=False):
             for change in changed_positions:
                 f.write(change + "\n")
 
-
         new_path = path_for_old_base(update_time=True)
         os.system(r'cp {} {}'.format(base_path, new_path))
 
-
         file_receved = True
         return render(request, 'solo_update.html', {
-                                        'label': label,
-                                        'file_receved': file_receved,
-                                        'changed_positions': changed_positions,
-                                        })
+            'label': label,
+            'file_receved': file_receved,
+            'changed_positions': changed_positions,
+        })
 
-
-    with open('update_abc_result.txt', 'r') as f:
-        changed_positions = f.readlines()
+    try:
+        with open('update_abc_result.txt', 'r') as f:
+            changed_positions = f.readlines()
+    except FileNotFoundError:
+        changed_positions = ["Обновлений не было"]
 
     return render(request, 'solo_update.html', {
-                                        'label': label,
-                                        'file_receved': file_receved,
-                                        'changed_positions': changed_positions,
-                                        })
-
+        'label': label,
+        'file_receved': file_receved,
+        'changed_positions': changed_positions,
+    })
 
 
 def contract(request):
-
     if request.method == 'GET':
-        return render(request, 'contract.html', {}
-                                        )
+        return render(request, 'contract.html',
+                      {}
+                      )
     elif request.method == 'POST':
         firm_type = request.POST.get('firm_type')
         second_firm = request.POST.get('second_firm')
@@ -200,27 +200,27 @@ def contract(request):
 
         if director:
             name = director
-            
+
         contract_filename, contract_filepath = create_contract(firm_type,
-                        second_firm, 
-                        position,
-                        firm_name,
-                        name,
-                        document,
-                        credit_limit,
-                        post_address,
-                        firm_address,
-                        firm_id,
-                        kpp,
-                        current_account,
-                        bank_name,
-                        corr_account,
-                        bank_bik,
-                        ogrnip,
-                        gender,
-                        pers_id_series,
-                        pers_id_number,
-                        pers_id_gover)
+                                                               second_firm,
+                                                               position,
+                                                               firm_name,
+                                                               name,
+                                                               document,
+                                                               credit_limit,
+                                                               post_address,
+                                                               firm_address,
+                                                               firm_id,
+                                                               kpp,
+                                                               current_account,
+                                                               bank_name,
+                                                               corr_account,
+                                                               bank_bik,
+                                                               ogrnip,
+                                                               gender,
+                                                               pers_id_series,
+                                                               pers_id_number,
+                                                               pers_id_gover)
 
         return redirect('/solo/contracts/%s' % contract_filename)
         # response = HttpResponse(FileResponse(open(contract_filepath, 'rb')), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
@@ -250,10 +250,9 @@ def contract(request):
 
 
 def return_docs(request):
-
     if request.method == 'GET':
         return render(request, 'return_docs.html', {}
-                                        )
+                      )
     elif request.method == 'POST':
         file = request.FILES['file']
         u_file = file.read()
@@ -262,14 +261,13 @@ def return_docs(request):
         with open(temp_filepath, 'wb') as f:
             f.write(u_file)
 
-
         try:
             positions = read_return_doc_xlxs(temp_filepath)
         except Exception as e:
             return render(request, 'return_docs.html', {
-                                        'file_receved': file_receved,
-                                        'wrong_file': True,
-                                        })
+                'file_receved': file_receved,
+                'wrong_file': True,
+            })
 
         nds = request.POST.get('nds')
         if nds:
@@ -286,7 +284,6 @@ def return_docs(request):
             for pos in positions:
                 data_list.append(str(pos['vcode']))
                 data_list.append(str(pos['number']))
-
 
         engine = create_engine('sqlite:///%s' % base_path, echo=False)
         Session = sessionmaker(bind=engine)
@@ -310,5 +307,9 @@ def return_docs(request):
 
         file_receved = True
         return render(request, 'return_docs.html', {
-                                        'file_receved': file_receved,
-                                        })
+            'file_receved': file_receved,
+        })
+
+
+def settings_page(request):
+    return render(request, 'solo_settings.html', {})
