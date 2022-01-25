@@ -1,7 +1,7 @@
 
 
 
-solo_path = r'/home/django/bike_shop/solo/'
+solo_path = r'C:\Users\User\PycharmProjects\bike_shop\solo'
 
 xlxs_filepath = solo_path + r'base.xlsx'
 

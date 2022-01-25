@@ -163,7 +163,14 @@ def create_contract(
 
     result_filename = ' '.join(result_filename_list) + '.docx'
     save_path = os.path.join(solo_path, 'contracts', result_filename)
-    doc.save(save_path)
+    try:
+        doc.save(save_path)
+    except FileNotFoundError:
+        dir_path = os.path.join(solo_path, 'contracts')
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
+            doc.save(save_path)
+
     return result_filename, save_path
 
 
