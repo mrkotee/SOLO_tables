@@ -1,4 +1,8 @@
-# from django.db import models
+from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, UserManager
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
@@ -8,13 +12,10 @@ from datetime import datetime as dt
 import os
 
 try:
-    from .solo_settings import solo_path, base_path, name_base_path
+    from .solo_settings import solo_path, base_path, name_base_path, mail_set_base_path
 except:
-    from solo_settings import solo_path, base_path, name_base_path
+    from solo_settings import solo_path, base_path, name_base_path, mail_set_base_path
 
-
-
-# base_path = os.getcwd() + r"/base.bd")
 
 def path_for_old_base(update_time=False):
     dt_now = dt.now()
@@ -86,12 +87,6 @@ class Collection(Base):
             self.boxes = boxes
         
 
-
-if not os.path.exists(base_path):
-    engine = create_engine('sqlite:///%s' % base_path, echo=False)
-    Base.metadata.create_all(bind=engine)
-
-
 class Table_row:
     def __init__(self, vcode, number='', consig=''):
         self.vcode = vcode
@@ -143,14 +138,67 @@ class Factory(Name_Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
+    actual = Column(Boolean, default=False)
     collections = relationship("Collection_Factory", backref='factory')
 
     def __init__(self, name):
         self.name = name
         
 
+Mail_Base = declarative_base()
 
-if not os.path.exists(name_base_path):
-    engine = create_engine('sqlite:///%s' % name_base_path, echo=False)
-    Name_Base.metadata.create_all(bind=engine)
+
+class MailAddress(Mail_Base):
+    __tablename__ = "mail_addresses"
+
+    id = Column(Integer, primary_key=True)
+
+
+# check exist and create sqlite3 basefile
+def check_bd_file(path_to_basefile, base_class):
+    if not os.path.exists(path_to_basefile):
+        engine = create_engine('sqlite:///%s' % path_to_basefile, echo=False)
+        base_class.metadata.create_all(bind=engine)
+
+
+base_dict = {
+    base_path: Base,
+    name_base_path: Name_Base,
+    mail_set_base_path: Mail_Base,
+}
+for path, base_cls in base_dict.items():
+    check_bd_file(path, base_cls)
+
+
+class SoloUser(AbstractBaseUser):
+    username_validator = UnicodeUsernameValidator()
+
+    username = models.CharField(
+        _('username'),
+        max_length=150,
+        unique=True,
+        null=True,
+        help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
+        validators=[username_validator],
+        error_messages={
+            'unique': _("A user with that username already exists."),
+        },
+    )
+
+    email = models.EmailField(_('email address'), blank=True)
+
+    EMAIL_FIELD = 'email'
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = []
+
+    is_solo_user = models.BooleanField(
+        _('solo staff status'),
+        default=False,
+        help_text=_('Designates whether the user can log into this solo tables site.'),
+    )
+    is_solo_admin = models.BooleanField(default=False)
+    is_active = True
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+
+    objects = UserManager()
 

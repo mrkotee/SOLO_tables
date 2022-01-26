@@ -1,23 +1,25 @@
-
+import os
 
 
 solo_path = r'C:\Users\User\PycharmProjects\bike_shop\solo'
 
-xlxs_filepath = solo_path + r'base.xlsx'
+xlxs_filepath = os.path.join(solo_path, r'base.xlsx')
 
-xlxs_abc_filepath = solo_path + r'abc.xlsx'
+xlxs_abc_filepath = os.path.join(solo_path, r'abc.xlsx')
 
-base_path = solo_path + r'base.bd'
+base_path = os.path.join(solo_path, r'base.bd')
 
-name_base_path = solo_path + r'name_base.bd'
+name_base_path = os.path.join(solo_path, r'name_base.bd')
 
-statistics_base_path = solo_path + r'statistics_base.bd'
+mail_set_base_path = os.path.join(solo_path, r'mail_base.bd')
 
-sng_base_path = solo_path + r'sng_base.bd'
+statistics_base_path = os.path.join(solo_path, r'statistics_base.bd')
 
-docs_temp_dir = solo_path + r'docs_temp/'
+sng_base_path = os.path.join(solo_path, r'sng_base.bd')
 
-sep_files_dir = solo_path + r'separated_by_factories/'
+docs_temp_dir = os.path.join(solo_path, r'docs_temp/')
+
+sep_files_dir = os.path.join(solo_path, r'separated_by_factories/')
 
 exclusive_collections = ['roberto', 'valentin', 'ferre']
 

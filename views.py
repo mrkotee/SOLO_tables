@@ -1,6 +1,7 @@
 import os
 from django.http import Http404, HttpResponse, FileResponse
 from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
 from datetime import datetime as dt
 import json
@@ -9,8 +10,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from openpyxl import load_workbook
 from .models import base_path, VCode, Consigment, Collection, Table_row, path_for_old_base
+from .models import Factory
 from .funcs import get_for_table, get_all_from_base, read_xlxs, add_boxes_to_vcodes, read_abc_xlxs
 from .solo_settings import xlxs_filepath, xlxs_abc_filepath, docs_temp_dir, sng_base_path, sep_files_dir
+from .solo_settings import name_base_path
 from .celery_tasks import update_base, del_return_docs_temp
 from .celery_tasks import update_abc as cel_update_abc
 from .contract_funcs import create_contract, create_addition_contract
@@ -19,6 +22,13 @@ from .return_doc_funcs import read_xlxs as read_return_doc_xlxs
 from .sng_funcs import read_xlxs as read_sng_xlxs
 from .sng_funcs import add_names_to_base, change_names_xlxs
 from .sng_models import Clients_row, Client
+
+
+def create_session(_base_path):
+    engine = create_engine('sqlite:///%s' % _base_path, echo=False)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    return session
 
 
 def main(request, data_receved=False):
@@ -58,9 +68,7 @@ def table(request):
 
     data_list = data.split()
 
-    engine = create_engine('sqlite:///%s' % base_path, echo=False)
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = create_session(base_path)
     if boxes_num:
         if uni_boxes_num:
             table_rows = get_for_table(data_list, session, 
@@ -297,9 +305,7 @@ def return_docs(request):
                 data_list.append(str(pos['vcode']))
                 data_list.append(str(pos['number']))
 
-        engine = create_engine('sqlite:///%s' % base_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        session = create_session(base_path)
 
         return_vcodes_dict = {}
         for table_row in get_for_table(data_list, session):
@@ -323,13 +329,10 @@ def return_docs(request):
         })
 
 
-
 def change_names(request):
 
     if request.method == 'GET':
-        engine = create_engine('sqlite:///%s' % sng_base_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        session = create_session(sng_base_path)
 
         clients_rows = [Clients_row(cl.id, cl.name) for cl in session.query(Client).all()]
 
@@ -355,9 +358,7 @@ def change_names(request):
             f.write(u_file)
 
 
-        engine = create_engine('sqlite:///%s' % sng_base_path, echo=False)
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        session = create_session(sng_base_path)
 
         if add_to_base or not client:
             data = read_sng_xlxs(temp_filepath)
@@ -387,6 +388,12 @@ def change_names(request):
             return redirect('/solo/r_docs/%s' % filename)
 
 
-
 def settings_page(request):
-    return render(request, 'solo_settings.html', {})
+    username = 'test'
+    session = create_session(base_path)
+    names_session = create_session(name_base_path)
+    factories = names_session.query(Factory).all()
+    return render(request, 'solo_settings.html', {
+        "username": username,
+        "fabrics": factories,
+    })

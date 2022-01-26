@@ -1,6 +1,7 @@
 from django.conf.urls import url
 from .views import main, table, update, update_abc, contract, return_docs, change_names
 from .views import settings_page
+from .user_views import login
 
 
 urlpatterns = [
@@ -12,4 +13,5 @@ urlpatterns = [
     url(r'^return/$', return_docs),
     url(r'^change_names/$', change_names),
     url(r'^settings/$', settings_page),
+    url(r'^login/$', login),
 ]
