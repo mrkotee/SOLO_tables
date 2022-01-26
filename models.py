@@ -170,26 +170,10 @@ for path, base_cls in base_dict.items():
     check_bd_file(path, base_cls)
 
 
-class SoloUser(AbstractBaseUser):
-    username_validator = UnicodeUsernameValidator()
+class SoloUser(models.Model):
 
-    username = models.CharField(
-        _('username'),
-        max_length=150,
-        unique=True,
-        null=True,
-        help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
-        validators=[username_validator],
-        error_messages={
-            'unique': _("A user with that username already exists."),
-        },
-    )
-
-    email = models.EmailField(_('email address'), blank=True)
-
-    EMAIL_FIELD = 'email'
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = []
+    user_id = models.IntegerField(unique=True, null=True)
+    # email = models.EmailField(_('email address'), blank=True)
 
     is_solo_user = models.BooleanField(
         _('solo staff status'),
@@ -197,8 +181,4 @@ class SoloUser(AbstractBaseUser):
         help_text=_('Designates whether the user can log into this solo tables site.'),
     )
     is_solo_admin = models.BooleanField(default=False)
-    is_active = True
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
-
-    objects = UserManager()
 

@@ -389,11 +389,10 @@ def change_names(request):
 
 
 def settings_page(request):
-    username = 'test'
+    http_ref = request.META.get("HTTP_REFERER", request.path)
     session = create_session(base_path)
     names_session = create_session(name_base_path)
     factories = names_session.query(Factory).all()
     return render(request, 'solo_settings.html', {
-        "username": username,
         "fabrics": factories,
     })
