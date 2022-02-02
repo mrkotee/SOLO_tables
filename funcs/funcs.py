@@ -3,13 +3,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 try:
-    from .models import VCode, Consigment, Collection, base_path, Table_row, \
-    VCodeName, Collection_Factory, Factory
-    from .solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections, xlxs_filepath
-except:
     from models import VCode, Consigment, Collection, base_path, Table_row, \
     VCodeName, Collection_Factory, Factory
     from solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections, xlxs_filepath
+except:
+    from solo.models import VCode, Consigment, Collection, base_path, Table_row, \
+    VCodeName, Collection_Factory, Factory
+    from solo.solo_settings import replace_dict, name_base_path, sep_files_dir, exclusive_collections, xlxs_filepath
 
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import Border, Side, PatternFill, Font, GradientFill, Alignment, NamedStyle

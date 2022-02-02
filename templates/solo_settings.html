@@ -27,25 +27,65 @@
     <!-- dropdown -->
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
     <script>
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        };
+        var csrftoken = getCookie('csrftoken');
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
         $(document).ready(function(){
             $(".set").click(function(){
-                var request = "set ";
+                var request;
                 var name = this.parentElement.children[0].textContent;
+                var type = this.parentElement.children[0].getAttribute("value");
                 if (this.value === "on") {
-                    request += "on";
+                    request = "active";
                 } else {
-                    request += "off";
+                    request = "inactive";
                 };
-                $.ajax({
-                    url: "/solo/settings",
-                    data: {
+                var btn = this;
+                $.post("/solo/settings/",
+                        {
                         cmd: "edit",
-                        type: "factory",
-                    },
-                    success: function(data) {
-                        console.log(data);
-                    }
-                });
+                        type: type,
+                        type: type,
+                        name: name,
+                        value: request,
+                        },
+                        function( data ) {
+                            console.log(data);
+                            if ( data["resp"] === "ok" ) {
+                                if ( btn.value === "on" ) {
+                                    btn.value = "off";
+                                    btn.textContent = "set inactive";
+                                } else {
+                                    btn.value = "on";
+                                    btn.textContent = "set active";
+                                };
+                            };
+                        },
+                );
             });
         });
     </script>
@@ -123,9 +163,9 @@
                     {% for fabric in fabrics %}
                     {% spaceless %}
                     <li>
-                        <span>{{ fabric.name }}</span>
+                        <span value="fabric">{{ fabric.name }}</span>
                         {% if fabric.actual %}
-                        <button class="set" value="off">set unactive</button>
+                        <button class="set" value="off">set inactive</button>
                         {% else %}
                         <button class="set" value="on">set active</button>
                         {% endif %}

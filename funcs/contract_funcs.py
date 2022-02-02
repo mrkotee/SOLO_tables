@@ -3,11 +3,11 @@ from datetime import datetime as dt
 from docxtpl import DocxTemplate
 import pymorphy2
 try:
-    from .num2str import num2text
-    from .solo_settings import mounth_names, solo_path
-except:
     from num2str import num2text
     from solo_settings import mounth_names, solo_path
+except:
+    from solo.num2str import num2text
+    from solo.solo_settings import mounth_names, solo_path
 
 
 
@@ -79,7 +79,7 @@ def create_contract(
         filename += 'predoplata.docx'
         result_filename_list[2] = 'предоплата'
 
-    word_path = os.path.join(solo_path, 'word_templates', filename)
+    word_path = os.path.join(solo_path, '../word_templates', filename)
 
     ###########################
 
@@ -162,11 +162,11 @@ def create_contract(
         result_filename_list[1] = director_short
 
     result_filename = ' '.join(result_filename_list) + '.docx'
-    save_path = os.path.join(solo_path, 'contracts', result_filename)
+    save_path = os.path.join(solo_path, '../contracts', result_filename)
     try:
         doc.save(save_path)
     except FileNotFoundError:
-        dir_path = os.path.join(solo_path, 'contracts')
+        dir_path = os.path.join(solo_path, '../contracts')
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
             doc.save(save_path)
@@ -224,7 +224,7 @@ def create_addition_contract(
     credit_limit = int(credit_limit)
     result_filename_list[2] = 'ДС каталоги'
 
-    word_path = os.path.join(solo_path, 'word_templates', filename)
+    word_path = os.path.join(solo_path, '../word_templates', filename)
 
     ###########################
 
@@ -294,7 +294,7 @@ def create_addition_contract(
         result_filename_list[1] = director_short
 
     result_filename = ' '.join(result_filename_list) + '.docx'
-    save_path = os.path.join(solo_path, 'contracts', result_filename)
+    save_path = os.path.join(solo_path, '../contracts', result_filename)
     doc.save(save_path)
     return result_filename, save_path
 

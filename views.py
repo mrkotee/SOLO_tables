@@ -1,27 +1,22 @@
-import os
-from django.http import Http404, HttpResponse, FileResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
-from django.core.files.storage import FileSystemStorage
 from datetime import datetime as dt
 import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import IntegrityError, InvalidRequestError
-from openpyxl import load_workbook
-from .models import base_path, VCode, Consigment, Collection, Table_row, path_for_old_base
-from .models import Factory
-from .funcs import get_for_table, get_all_from_base, read_xlxs, add_boxes_to_vcodes, read_abc_xlxs
-from .solo_settings import xlxs_filepath, xlxs_abc_filepath, docs_temp_dir, sng_base_path, sep_files_dir
-from .solo_settings import name_base_path
-from .celery_tasks import update_base, del_return_docs_temp
-from .celery_tasks import update_abc as cel_update_abc
-from .contract_funcs import create_contract, create_addition_contract
+from .models import base_path
+from .models import Factory, MailAddress
+from .funcs.funcs import get_for_table, read_xlxs, read_abc_xlxs
+from .solo_settings import xlxs_filepath, xlxs_abc_filepath, docs_temp_dir, sng_base_path
+from .solo_settings import name_base_path, mail_set_base_path
+from .funcs.celery_tasks import update_base, del_return_docs_temp
+from .funcs.celery_tasks import update_abc as cel_update_abc
+from .funcs.contract_funcs import create_contract, create_addition_contract
 from .return_doc_funcs import get_doc_of_return
 from .return_doc_funcs import read_xlxs as read_return_doc_xlxs
-from .sng_funcs import read_xlxs as read_sng_xlxs
-from .sng_funcs import add_names_to_base, change_names_xlxs
-from .sng_models import Clients_row, Client
+from .sng.sng_funcs import read_xlxs as read_sng_xlxs
+from .sng.sng_funcs import add_names_to_base, change_names_xlxs
+from .sng.sng_models import Clients_row, Client
 
 
 def create_session(_base_path):
@@ -390,19 +385,29 @@ def change_names(request):
 
 def settings_page(request):
     if request.method == 'GET':
+        if not request.user.is_authenticated:
+            return render(request, 'solo_settings.html', {
+            })
         http_ref = request.META.get("HTTP_REFERER", request.path)
         session = create_session(base_path)
         names_session = create_session(name_base_path)
+        mail_session = create_session(mail_set_base_path)
+
         factories = names_session.query(Factory).all()
+
+        mails = mail_session.query(MailAddress).all()
+
+        session.close()
+        names_session.close()
+        mail_session.close()
         return render(request, 'solo_settings.html', {
             "fabrics": factories,
+            "emails": mails,
         })
     elif request.is_ajax():
-        print('is ajax')
-        return JsonResponse('ok')
-    elif request.method == 'POST':
         if not request.user.is_authenticated:
             raise Http404
+
         command = request.POST.get('cmd')
         if command == "get":
             need_data = request.POST.get('need_data')
@@ -411,5 +416,24 @@ def settings_page(request):
             value_type = request.POST.get('type')
             object_name = request.POST.get('name')
             value = request.POST.get('value')
+
+            response = {'resp': 'ok'}
+            if value_type == 'fabric':
+                names_session = create_session(name_base_path)
+                factory = names_session.query(Factory).filter(Factory.name == object_name).first()
+                if factory:
+                    if value == "active":
+                        factory.actual = True
+                    elif value == "inactive":
+                        factory.actual = False
+                    names_session.commit()
+
+                    response["name"] = factory.name
+                else:
+                    response['resp'] = 'None'
+                names_session.close()
+
+            return JsonResponse(response)
+    # elif request.method == 'POST':
 
     raise Http404

@@ -152,6 +152,14 @@ class MailAddress(Mail_Base):
     __tablename__ = "mail_addresses"
 
     id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True, nullable=False)
+    is_main = Column(Boolean, default=False)
+    user_id = Column(Integer, nullable=False)
+
+    def __init__(self, email, user_id, main=False):
+        self.email = email
+        self.user_id = user_id
+        self.is_main = main
 
 
 # check exist and create sqlite3 basefile
