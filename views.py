@@ -1,5 +1,5 @@
 import os
-from django.http import Http404, HttpResponse, FileResponse
+from django.http import Http404, HttpResponse, FileResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
@@ -389,10 +389,27 @@ def change_names(request):
 
 
 def settings_page(request):
-    http_ref = request.META.get("HTTP_REFERER", request.path)
-    session = create_session(base_path)
-    names_session = create_session(name_base_path)
-    factories = names_session.query(Factory).all()
-    return render(request, 'solo_settings.html', {
-        "fabrics": factories,
-    })
+    if request.method == 'GET':
+        http_ref = request.META.get("HTTP_REFERER", request.path)
+        session = create_session(base_path)
+        names_session = create_session(name_base_path)
+        factories = names_session.query(Factory).all()
+        return render(request, 'solo_settings.html', {
+            "fabrics": factories,
+        })
+    elif request.is_ajax():
+        print('is ajax')
+        return JsonResponse('ok')
+    elif request.method == 'POST':
+        if not request.user.is_authenticated:
+            raise Http404
+        command = request.POST.get('cmd')
+        if command == "get":
+            need_data = request.POST.get('need_data')
+            pass
+        elif command == "edit":
+            value_type = request.POST.get('type')
+            object_name = request.POST.get('name')
+            value = request.POST.get('value')
+
+    raise Http404

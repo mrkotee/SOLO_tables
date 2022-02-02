@@ -27,6 +27,27 @@
     <!-- dropdown -->
     <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
     <script>
+        $(document).ready(function(){
+            $(".set").click(function(){
+                var request = "set ";
+                var name = this.parentElement.children[0].textContent;
+                if (this.value === "on") {
+                    request += "on";
+                } else {
+                    request += "off";
+                };
+                $.ajax({
+                    url: "/solo/settings",
+                    data: {
+                        cmd: "edit",
+                        type: "factory",
+                    },
+                    success: function(data) {
+                        console.log(data);
+                    }
+                });
+            });
+        });
     </script>
     <style type="text/css">
         form input[type="text"] {
@@ -37,63 +58,99 @@
     </style>
 </head>
 <body>
-<h1>Настройки</h1>
-<div class="banner-bg {% if page == 'index' %}banner-bg1{% else %}banner-sec{% endif %}"
-     style="padding-top: 15px; background: black;">
-    <div class="container">
-        <ul class="nav">
-            {% if user.is_authenticated %}
-            <li class="dropdown1"><a href="/user/{{user.id}}">{{user.username}}</a>
-                <ul class="dropdown2">
-                    <li><a href="/user/logout/">LOGOUT</a></li>
-                </ul>
-            </li>
-            {% else %}
-            <li class="dropdown1"><a href="/user/login">Login</a>
-                <ul class="dropdown2">
-                    <li class="loginform">
-                        {% if errors %} <p>Sorry, login or password is incorrect</p>{% endif %}
-                        <form method="post" action="/user/login/">
-                            {% csrf_token %}
-                            <input type="text" name="login" value="" placeholder="Username">
-                            <input type="password" name="password" value="" placeholder="Password">
-                            <button type="submit" class="btn btn-default login-btn">Send</button>
-                        </form>
-                        <a href="/user/registration/?next={{ request.path }}">REGISTRATION</a>
-                    </li>
-                    <!-- <li></li> -->
-                </ul>
-            </li>
-            {% endif %}
-        </ul>
+<div class="container">
+    <div class="header">
+        <div class="top-nav">
+            <label class="mobile_menu" for="mobile_menu">
+                <span>Menu</span>
+            </label>
+            <input id="mobile_menu" type="checkbox">
+            <ul class="nav" style="color: black; background: goldenrod;float: right;">
+                <li class="dropdown1">
+                    <a href="/solo/">Подбор партий</a>
+                </li>
+                <li class="dropdown1">
+                    <a href="/solo/contract/">Заполнить договор</a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="dropdown1"><a href="/solo/settings/">Настройки</a>
+                    <ul class="dropdown2">
+                        <li><a href="/solo/update/">Обновить остатки</a></li>
+                        <li><a href="/solo/update_abc/">Обновить из ABC</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown1"><a href="/user/{{user.id}}">{{user.username}}</a>
+                    <ul class="dropdown2">
+                        <li><a href="/user/logout/">LOGOUT</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="dropdown1"><a href="/user/login/?next={{ request.path }}">Login</a>
+                    <ul class="dropdown2">
+                        <li class="loginform">
+                            {% if errors %} <p>Sorry, login or password is incorrect</p>{% endif %}
+                            <form method="post" action="/user/login/">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.path }}"/>
+                                <input type="text" name="username" value="" placeholder="Username">
+                                <input type="password" name="password" value="" placeholder="Password">
+                                <button type="submit" class="btn btn-default login-btn">Send</button>
+                            </form>
+                            <a href="/user/registration/?next={{ request.path }}">REGISTRATION</a>
+                        </li>
+                        <!-- <li></li> -->
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        <div class="clearfix"></div>
     </div>
+    <div><h1 align="center" >Настройки</h1></div>
     {% if user.id|is_solo_user %}
-    <h2>Mail list</h2>
-    <div>
-    </div>
-    <h2>Mail themes and attachments</h2>
-    <div>
+        <h2>Mail list</h2>
+        <div>
 
-    </div>
-    <h2>Fabric names</h2>
-    <div>
-        {% for fabric in fabrics %}
-        {% spaceless %}
-        <p>{{ fabric.name }}
-            {% if fabric.actual %}
-            <button>set unactive</button>
-            {% else %}
-            <button>set active</button>
-            {% endif %}
-        </p>
-        {% endspaceless %}
-        {% empty %}
-        <p>None fabric found</p>
-        {% endfor %}
-    </div>
-    <h2></h2>
+        </div>
+        <h2>Mail themes and attachments</h2>
+        <div>
+
+        </div>
+        <h2>Fabric names</h2>
+        <div>
+            <ul>
+                {% if user.id|is_solo_admin %}
+                    {% for fabric in fabrics %}
+                    {% spaceless %}
+                    <li>
+                        <span>{{ fabric.name }}</span>
+                        {% if fabric.actual %}
+                        <button class="set" value="off">set unactive</button>
+                        {% else %}
+                        <button class="set" value="on">set active</button>
+                        {% endif %}
+                    </li>
+                    {% endspaceless %}
+                    {% empty %}
+                    <p>None fabric found</p>
+                    {% endfor %}
+                {% else %}
+                    {% for fabric in fabrics %}
+                    {% spaceless %}
+                    <li>
+                        <span>{{ fabric.name }}</span>
+                    </li>
+                    {% endspaceless %}
+                    {% empty %}
+                    <p>None fabric found</p>
+                    {% endfor %}
+                {% endif %}
+            </ul>
+        </div>
+        <h2></h2>
     {% elif user.is_authenticated %}
-    <div>Нет доступа к настройкам solo!</div>
+        <div>Нет доступа к настройкам solo!</div>
     {% endif %}
+</div>
 </body>
 </html>
