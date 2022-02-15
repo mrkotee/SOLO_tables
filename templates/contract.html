@@ -1,30 +1,19 @@
+{% extends "solo_base.html" %}
+
 {% load staticfiles %}
+{% block title %}
+    Создание договора {{block.super}}
+{% endblock %}
 
-
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<title>
-    {% block title %}
-         Создание договора
-    {% endblock %}
-</title>
-<link href="{% static 'css/bootstrap.css' %}" rel='stylesheet' type='text/css' />
-<!-- jQuery (Bootstrap's JavaScript plugins) -->
-<script src="{% static 'js/jquery.min.js' %}"></script>
-<!-- Custom Theme files -->
-<link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css" media="all" />
-<!-- Custom Theme files -->
-{% block css %}{% endblock %}
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<!--webfont-->
-<link href='https://fonts.googleapis.com/css?family=Roboto:500,900,100,300,700,400' rel='stylesheet' type='text/css'>
-<script src="{% static 'js/jquery.easydropdown.js' %}"></script>
-<link href="{% static 'css/nav.css' %}" rel="stylesheet" type="text/css" media="all"/>
-<!--webfont-->
-<!-- dropdown -->
-    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
+{% block css %}
+    <style type="text/css">
+        form input[type="text"] {
+            margin-bottom: 0px !important;
+            width: 100% !important;
+        }
+    </style>
+{% endblock %}
+{% block scripts %}
     <script>
         $(document).ready(function(){
             $("#firm_type").click(function(){
@@ -66,14 +55,10 @@
             });
         });
     </script>
-    <style type="text/css">
-        form input[type="text"] {
-            margin-bottom: 0px !important;
-            width: 100% !important;
-        }
-    </style>
-</head>
-<body>
+{% endblock %}
+
+
+{% block content %}
 
 <div class="contact" style="background: none">
     <div class="container">
@@ -124,5 +109,5 @@
         </form>
     </div>
 </div>
-</body>
-</html>
+
+{% endblock %}
