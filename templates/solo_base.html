@@ -53,8 +53,61 @@
 </head>
 <body>
 
-{% block content %}
-{% endblock %}
+<div class="container">
+    <div class="header">
+        <div class="top-nav">
+            <label class="mobile_menu" for="mobile_menu">
+                <span>Menu</span>
+            </label>
+            <input id="mobile_menu" type="checkbox">
+            <ul class="nav" style="color: black; background: goldenrod;float: right;">
+                <li class="dropdown1">
+                    <a href="/solo/">Подбор партий</a>
+                </li>
+                <li class="dropdown1">
+                    <a href="/solo/contract/">Заполнить договор</a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="dropdown1"><a href="/solo/settings/">Настройки</a>
+                    <ul class="dropdown2">
+                        <li><a href="/solo/update/">Обновить остатки</a></li>
+                        <li><a href="/solo/update_abc/">Обновить из ABC</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown1"><a href="/user/{{user.id}}">{{user.username}}</a>
+                    <ul class="dropdown2">
+                        <li><a href="/user/logout/">LOGOUT</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="dropdown1"><a href="/user/login/?next={{ request.path }}">Login</a>
+                    <ul class="dropdown2">
+                        <li class="loginform">
+                            {% if errors %} <p>Sorry, login or password is incorrect</p>{% endif %}
+                            <form method="post" action="/user/login/">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.path }}"/>
+                                <input type="text" name="username" value="" placeholder="Username">
+                                <input type="password" name="password" value="" placeholder="Password">
+                                <button type="submit" class="btn btn-default login-btn">Send</button>
+                            </form>
+                            <a href="/user/registration/?next={{ request.path }}">REGISTRATION</a>
+                        </li>
+                        <!-- <li></li> -->
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
 
 </body>
 </html>

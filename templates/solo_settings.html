@@ -8,79 +8,44 @@
     Настройки {{block.super}}
 {% endblock %}
 
+{% block css %}
+<style type="text/css">
+	.headers {
+		display: flex;
+	}
+	.non_actual_fabric {
+	    display: none;
+	}
+</style>
+{% endblock %}
+{% block scripts %}<script src="{% static 'solo_admin_scripts.js' %}"></script>{% endblock %}
+
 {% block content %}
 
-<div class="container">
-    <div class="header">
-        <div class="top-nav">
-            <label class="mobile_menu" for="mobile_menu">
-                <span>Menu</span>
-            </label>
-            <input id="mobile_menu" type="checkbox">
-            <ul class="nav" style="color: black; background: goldenrod;float: right;">
-                <li class="dropdown1">
-                    <a href="/solo/">Подбор партий</a>
-                </li>
-                <li class="dropdown1">
-                    <a href="/solo/contract/">Заполнить договор</a>
-                </li>
-                {% if user.is_authenticated %}
-                <li class="dropdown1"><a href="/solo/settings/">Настройки</a>
-                    <ul class="dropdown2">
-                        <li><a href="/solo/update/">Обновить остатки</a></li>
-                        <li><a href="/solo/update_abc/">Обновить из ABC</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown1"><a href="/user/{{user.id}}">{{user.username}}</a>
-                    <ul class="dropdown2">
-                        <li><a href="/user/logout/">LOGOUT</a></li>
-                    </ul>
-                </li>
-                {% else %}
-                <li class="dropdown1"><a href="/user/login/?next={{ request.path }}">Login</a>
-                    <ul class="dropdown2">
-                        <li class="loginform">
-                            {% if errors %} <p>Sorry, login or password is incorrect</p>{% endif %}
-                            <form method="post" action="/user/login/">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.path }}"/>
-                                <input type="text" name="username" value="" placeholder="Username">
-                                <input type="password" name="password" value="" placeholder="Password">
-                                <button type="submit" class="btn btn-default login-btn">Send</button>
-                            </form>
-                            <a href="/user/registration/?next={{ request.path }}">REGISTRATION</a>
-                        </li>
-                        <!-- <li></li> -->
-                    </ul>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
-        <div class="clearfix"></div>
-    </div>
     <div><h1 align="center" >Настройки</h1></div>
     {% if user.id|is_solo_user %}
-        <h2>Mail list</h2>
+        {% if user.is_superuser %}
+        <div class="headers"><h2>Mail list</h2><button class="hider" value="mails">Свернуть</button></div>
         <div>
-            <ul>
+            <ul id="mails">
                 {% if user.id|is_solo_admin %}
                 {% for mail in emails %}
                 {% spaceless %}
                 <li>
                     <span value="email">{{ mail.email }}</span>
                     {% if mail.is_main %}
-                    <button class="set" value_type="main" value="off">основной</button>
+                        <button class="set" value_type="main" value="off">основной</button>
                     {% else %}
-                    <button class="set" value_type="main"  value="on">сделать основным</button>
+                        <button class="set" value_type="main"  value="on">сделать основным</button>
                     {% endif %}
-                    <span>user_id: {{ mail.user_id }}</span>
-                    <button class="set" value="edit">изменить</button>
+                        <span>user_id: {{ mail.user_id }}</span>
+                        <button class="set" value="edit">изменить</button>
                     {% if mail.in_marrys_list %}
-                    <span>В списке Маши</span>
-                    <button class="set" value="off">исключить</button>
+                        <span>В списке Маши</span>
+                        <button class="set" value_type="marry" value="off">исключить</button>
                     {% else %}
-                    <span>Не в списке Маши</span>
-                    <button class="set" value="on">включить</button>
+                        <span>Не в списке Маши</span>
+                        <button class="set" value_type="marry" value="on">включить</button>
                     {% endif %}
                 </li>
                 {% endspaceless %}
@@ -90,17 +55,19 @@
                 {% endif %}
             </ul>
         </div>
+        {% endif %}
         <h2>Mail themes and attachments</h2>
         <div>
 
         </div>
-        <h2>Fabric names</h2>
+        <div class="headers"><h2>Fabric names</h2><button class="hider" value="fabrics">Свернуть</button>
+            <button class="non_active_hider" value="non_actual_fabric">Развернуть неактивные</button></div>
         <div>
-            <ul>
+            <ul id="fabrics">
                 {% if user.id|is_solo_admin %}
                     {% for fabric in fabrics %}
                     {% spaceless %}
-                    <li>
+                    <li {% if not fabric.actual %}class="non_actual_fabric"{% endif %}>
                         <span value="fabric">{{ fabric.name }}</span>
                         {% if fabric.actual %}
                         <button class="set" value="off">отключить</button>
@@ -115,7 +82,7 @@
                 {% else %}
                     {% for fabric in fabrics %}
                     {% spaceless %}
-                    <li>
+                    <li {% if not fabric.actual %}class="non_actual_fabric"{% endif %}>
                         <span>{{ fabric.name }}</span>
                     </li>
                     {% endspaceless %}
@@ -128,7 +95,8 @@
         <h2></h2>
     {% elif user.is_authenticated %}
         <div>Нет доступа к настройкам solo!</div>
+    {% else %}
+        <div>Необходимо авторизоваться</div>
     {% endif %}
-</div>
 
 {% endblock %}
