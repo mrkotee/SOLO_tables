@@ -1,6 +1,6 @@
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
-from .models import SoloUser
+from .alchemy_models import SoloUser
 
 
 # class SoloUserCreationForm(UserCreationForm):

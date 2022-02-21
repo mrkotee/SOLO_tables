@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
-from models import VCode, Consigment, Collection, base_path, Table_row
+from alchemy_models import VCode, Consigment, Collection, base_path, Table_row
 from openpyxl import load_workbook
 import random, string, time
 import os
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     filepath = os.path.join(os.getcwd(), "uni-motiv.xlsx")
 
     if not os.path.exists(t_base_path):
-        from models import Base
+        from alchemy_models import Base
         engine_t = create_engine('sqlite:///%s' % t_base_path, echo=False)
         Base.metadata.create_all(bind=engine_t)
 

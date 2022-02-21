@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 # from openpyxl import load_workbook
-from models import base_path, VCode, Consigment, Collection, Table_row, path_for_old_base
+from alchemy_models import base_path, VCode, Consigment, Collection, Table_row, path_for_old_base
 from funcs import get_for_table
 from solo_settings import xlxs_filepath, xlxs_abc_filepath, docs_temp_dir
 

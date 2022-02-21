@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
-from models import VCode, Consigment, Collection, base_path, Table_row
+from alchemy_models import VCode, Consigment, Collection, base_path, Table_row
 from solo_settings import replace_dict
 from openpyxl import load_workbook
 

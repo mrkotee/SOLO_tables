@@ -9,7 +9,7 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import IntegrityError, InvalidRequestError
 from openpyxl import load_workbook
 try:
-    from models import base_path, VCode, Consigment, Collection, Table_row, \
+    from alchemy_models import base_path, VCode, Consigment, Collection, Table_row, \
     path_for_old_base, name_base_path
     from funcs import get_for_table, get_all_from_base, read_xlxs, \
     add_boxes_to_vcodes, read_abc_xlxs, add_names_to_vcodes, separate_by_factories, create_xlsx_without_consigments
@@ -18,7 +18,7 @@ try:
     from funcs import send_mails_smtp as send_mails
     from m_settings import mail_list, marys_mail, smtp_server, smtp_from, mail_text
 except:
-    from solo.models import base_path, VCode, Consigment, Collection, Table_row, \
+    from solo.alchemy_models import base_path, VCode, Consigment, Collection, Table_row, \
     path_for_old_base, name_base_path
     from .funcs import get_for_table, get_all_from_base, read_xlxs, \
     add_boxes_to_vcodes, read_abc_xlxs, add_names_to_vcodes, separate_by_factories, create_xlsx_without_consigments

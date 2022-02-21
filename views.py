@@ -4,8 +4,8 @@ from datetime import datetime as dt
 import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import base_path
-from .models import Factory, MailAddress
+from .alchemy_models import base_path
+from .alchemy_models import Factory, MailAddress
 from .funcs.funcs import get_for_table, read_xlxs, read_abc_xlxs
 from .solo_settings import xlxs_filepath, xlxs_abc_filepath, docs_temp_dir, sng_base_path
 from .solo_settings import name_base_path, mail_set_base_path
@@ -393,7 +393,7 @@ def settings_page(request):
         names_session = create_session(name_base_path)
         mail_session = create_session(mail_set_base_path)
 
-        factories = names_session.query(Factory).all()
+        factories = names_session.query(Factory).order_by(Factory.actual.desc()).all()
 
         mails = mail_session.query(MailAddress).all()
 
@@ -416,22 +416,45 @@ def settings_page(request):
             value_type = request.POST.get('type')
             object_name = request.POST.get('name')
             value = request.POST.get('value')
+            if value == "active":
+                value = True
+            elif value == "inactive":
+                value = False
 
             response = {'resp': 'ok'}
             if value_type == 'fabric':
                 names_session = create_session(name_base_path)
                 factory = names_session.query(Factory).filter(Factory.name == object_name).first()
                 if factory:
-                    if value == "active":
-                        factory.actual = True
-                    elif value == "inactive":
-                        factory.actual = False
+                    factory.actual = value
+
                     names_session.commit()
 
                     response["name"] = factory.name
                 else:
                     response['resp'] = 'None'
                 names_session.close()
+
+            elif value_type == "email":
+                value_type = request.POST.get('value_type')
+                mail_session = create_session(mail_set_base_path)
+                email_obj = mail_session.query(MailAddress).filter(
+                    MailAddress.email == object_name).first()
+
+                """possible names: 'marrys', 'main', 'edit' """
+                if value_type == "main":
+                    email_obj.is_main = value
+                    print(email_obj.email)
+                    print(value)
+
+                elif value_type == "marrys":
+                    email_obj.in_marrys_list = value
+
+                elif value_type == "edit":
+                    pass
+
+                mail_session.commit()
+                mail_session.close()
 
             return JsonResponse(response)
     # elif request.method == 'POST':
