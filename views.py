@@ -444,8 +444,6 @@ def settings_page(request):
                 """possible names: 'marrys', 'main', 'edit' """
                 if value_type == "main":
                     email_obj.is_main = value
-                    print(email_obj.email)
-                    print(value)
 
                 elif value_type == "marrys":
                     email_obj.in_marrys_list = value
