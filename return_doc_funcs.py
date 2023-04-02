@@ -90,57 +90,60 @@ def write_new_table(work_sheet, returned_vcodes_dict, nds):
                         finded_cords.append((cell.row, cell.column))
         return finded_cords
 
-    def change_positon_data(row_id, returned_vcodes_dict, nds, returned_rows_id):
+    def change_positon_data(row_id, returned_vcodes_dict: dict, nds, returned_rows_id):
         position = {}
-        position['vcode_full'] = work_sheet.cell(row=row_id, column=3).value
         position['vcode'] = work_sheet.cell(row=row_id, column=7).value.upper()
-        position['number'] = int(work_sheet.cell(row=row_id, column=17).value)
-        try:
-            position['weight'] = float(work_sheet.cell(row=row_id, column=21).value)
-        except TypeError:
-            position['weight'] = ''
-        position['price'] = float(work_sheet.cell(row=row_id, column=26).value)
-        position['summ'] = float(work_sheet.cell(row=row_id, column=39).value)
-        if nds:
-            position['summ_nds'] = float(work_sheet.cell(row=row_id, column=36).value)
 
         for returned_vcode, returned_vcode_num in returned_vcodes_dict.items():
+            if str(position['vcode']) != str(returned_vcode):
+                continue
+
+            position['vcode_full'] = work_sheet.cell(row=row_id, column=3).value
+            position['number'] = int(work_sheet.cell(row=row_id, column=17).value)
+            try:
+                position['weight'] = float(work_sheet.cell(row=row_id, column=21).value)
+            except TypeError:
+                position['weight'] = ''
+            position['price'] = float(work_sheet.cell(row=row_id, column=26).value)
+            position['summ'] = float(work_sheet.cell(row=row_id, column=39).value)
+            if nds:
+                position['summ_nds'] = float(work_sheet.cell(row=row_id, column=36).value)
+
             returned_vcode_num = int(returned_vcode_num)
-            if str(position['vcode']) == str(returned_vcode):
-                returned_rows_id += 1
-                work_sheet.cell(row=row_id, column=2).value = returned_rows_id
+            returned_rows_id += 1
+            work_sheet.cell(row=row_id, column=2).value = returned_rows_id
 
-                if not nds:
-                    position['price'] = position['summ']/position['number']
-                    work_sheet.cell(row=row_id, column=26).value = position['price']
-                    work_sheet.cell(row=row_id, column=29).value = position['summ']
-                    work_sheet.cell(row=row_id, column=35).value = ''
-                    work_sheet.cell(row=row_id, column=36).value = ''
+            if not nds:
+                position['price'] = position['summ']/position['number']
+                work_sheet.cell(row=row_id, column=26).value = position['price']
+                work_sheet.cell(row=row_id, column=29).value = position['summ']
+                work_sheet.cell(row=row_id, column=35).value = ''
+                work_sheet.cell(row=row_id, column=36).value = ''
 
-                if int(position['number']) != int(returned_vcode_num):
-                    if position['weight']:
-                        new_weight = (float(position['weight']) / int(position['number'])) * int(
-                            returned_vcode_num)
-                        work_sheet.cell(row=row_id, column=21).value = new_weight
-                        position['weight'] = new_weight
-                    new_summ = (float(position['summ']) / int(position['number'])) * int(
+            if int(position['number']) != int(returned_vcode_num):
+                if position['weight']:
+                    new_weight = (float(position['weight']) / int(position['number'])) * int(
                         returned_vcode_num)
-                    work_sheet.cell(row=row_id, column=39).value = new_summ
-                    position['summ'] = new_summ
-                    if not nds:
-                        work_sheet.cell(row=row_id, column=29).value = new_summ
-                    else:
-                        new_summ_nds = (float(position['summ_nds']) / int(
-                            position['number'])) * int(
-                            returned_vcode_num)
-                        work_sheet.cell(row=row_id, column=36).value = new_summ_nds
-                        position['summ_nds'] = new_summ_nds
+                    work_sheet.cell(row=row_id, column=21).value = new_weight
+                    position['weight'] = new_weight
+                new_summ = (float(position['summ']) / int(position['number'])) * int(
+                    returned_vcode_num)
+                work_sheet.cell(row=row_id, column=39).value = new_summ
+                position['summ'] = new_summ
+                if not nds:
+                    work_sheet.cell(row=row_id, column=29).value = new_summ
+                else:
+                    new_summ_nds = (float(position['summ_nds']) / int(
+                        position['number'])) * int(
+                        returned_vcode_num)
+                    work_sheet.cell(row=row_id, column=36).value = new_summ_nds
+                    position['summ_nds'] = new_summ_nds
 
-                    work_sheet.cell(row=row_id, column=17).value = int(returned_vcode_num)
-                    work_sheet.cell(row=row_id, column=24).value = int(returned_vcode_num)
-                    position['number'] = returned_vcode_num
-    
-                return position
+                work_sheet.cell(row=row_id, column=17).value = int(returned_vcode_num)
+                work_sheet.cell(row=row_id, column=24).value = int(returned_vcode_num)
+                position['number'] = returned_vcode_num
+            returned_vcodes_dict.pop(returned_vcode)
+            return position
 
         for col_id in range(work_sheet.max_column):
             if type(work_sheet.cell(row=row_id, column=col_id+1)).__name__ == 'MergedCell':
@@ -159,6 +162,8 @@ def write_new_table(work_sheet, returned_vcodes_dict, nds):
     table_start_cord = find_cells_cord('Но-')
     table_end_cord = find_cells_cord('Итого')
 
+    print("find start")
+
     positions_list = []
     has_weight = True
     for i, table_cords in enumerate(table_start_cord):
@@ -168,6 +173,8 @@ def write_new_table(work_sheet, returned_vcodes_dict, nds):
                 positions_list.append(position)
                 if not position['weight']:
                     has_weight = False
+
+    print("change rows")
 
     sum_number = sum([pos['number'] for pos in positions_list])
     if has_weight:

@@ -92,7 +92,7 @@ def update_base():
 
 @app.task()
 def del_return_docs_temp(filepath):
-    time.sleep(15)
+    time.sleep(60)
     os.remove(filepath)
 
 
